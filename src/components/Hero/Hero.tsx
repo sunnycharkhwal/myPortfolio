@@ -8,6 +8,7 @@ import githubIcon from '../../assets/github.svg';
 import whatsapp from '../../assets/whatsapp.svg';
 import Hello from '../../assets/Hello.gif';
 import Instagram from '../../assets/instagram.svg';
+import Resume from '../../assets/Sunny_Charkhwal.pdf';
 export function Hero() {
   return (
     <Container id="home">
@@ -32,6 +33,19 @@ export function Hero() {
               Contact
             </NavHashLink>
           </BrowserRouter>
+          <div style={{marginTop: '5rem'}} className="mobile_btn">
+            <a
+              href={Resume}
+              download
+              className="button"
+              style={{
+                backgroundColor: 'DodgerBlue',
+                fontWeight: '700',
+                padding: '11px 22px',
+              }}>
+              Download Resume
+            </a>
+          </div>
         </ScrollAnimation>
         <ScrollAnimation animateIn="fadeInUp" delay={1 * 1000}>
           <div className="social-media">

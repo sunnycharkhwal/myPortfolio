@@ -22,4 +22,17 @@
   .eHDIkE header p {
     font-size: 13px;
   }
+  .dxtFse .button {
+    padding-top: 11px !important;
+    padding-bottom: 11px !important;
+  }
+}
+@media (min-width: 768px) {
+  .mobile_btn {
+    display: none;
+  }
+}
+@media (min-width: 1024px) {
+}
+@media (min-width: 1440px) {
 }
