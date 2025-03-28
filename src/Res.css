@@ -5,10 +5,10 @@
   .hero-text {
     text-align: center;
   }
-  .kiftAn p {
+  p {
     font-size: 13px !important;
   }
-  .gpuGLT .projects .project footer .tech-list {
+  .projects .project footer .tech-list {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
@@ -19,10 +19,10 @@
   /* .gpuGLT .projects .project footer .tech-list li {
     margin-bottom: 10px;
   } */
-  .eHDIkE header p {
+  header p {
     font-size: 13px;
   }
-  .dxtFse .button {
+  .button {
     padding-top: 11px !important;
     padding-bottom: 11px !important;
   }
