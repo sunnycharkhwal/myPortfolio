@@ -10,6 +10,7 @@ import Tailwind from '../../assets/tailwind.svg';
 import Material from '../../assets/Material.svg';
 import GitHub from '../../assets/github.svg';
 import AWS from '../../assets/AWS.svg';
+import Sass from '../../assets/sass-icon.svg';
 
 import ScrollAnimation from 'react-animate-on-scroll';
 
@@ -59,6 +60,11 @@ export function About() {
           <div className="hability">
             <ScrollAnimation animateIn="fadeInUp" delay={0.13 * 1000}>
               <img src={reactIcon} alt="React" />
+            </ScrollAnimation>
+          </div>
+          <div className="hability">
+            <ScrollAnimation animateIn="fadeInUp" delay={0.13 * 1000}>
+              <img src={Sass} alt="Sass" />
             </ScrollAnimation>
           </div>
           <div className="hability">
