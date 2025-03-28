@@ -1,0 +1,25 @@
+@media (max-width: 576px) {
+  .logo {
+    font-size: 16px !important;
+  }
+  .hero-text {
+    text-align: center;
+  }
+  .kiftAn p {
+    font-size: 13px !important;
+  }
+  .gpuGLT .projects .project footer .tech-list {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    column-gap: 1rem !important;
+    row-gap: 5px !important;
+  }
+  /* .gpuGLT .projects .project footer .tech-list li {
+    margin-bottom: 10px;
+  } */
+  .eHDIkE header p {
+    font-size: 13px;
+  }
+}

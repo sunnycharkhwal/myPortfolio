@@ -1,5 +1,5 @@
 import {Container} from './styles';
-import VinayakSingh from '../../assets/d2.jpg';
+import SunnyCharkhwal from '../../assets/d2.jpg';
 import htmlIcon from '../../assets/html-icon.svg';
 import cssIcon from '../../assets/css-icon.svg';
 import nodeIcon from '../../assets/node-icon.svg';
@@ -110,7 +110,7 @@ export function About() {
       </div>
       <div className="about-image">
         <ScrollAnimation animateIn="fadeInRight" delay={0.2 * 1000}>
-          <img src={VinayakSingh} alt="Vinayak Singh" />
+          <img src={SunnyCharkhwal} alt="sunny charkhwal" />
         </ScrollAnimation>
       </div>
     </Container>
