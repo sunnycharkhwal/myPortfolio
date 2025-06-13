@@ -5,6 +5,21 @@ import ScrollAnimation from 'react-animate-on-scroll';
 export const Project = () => {
   const ProjectData = [
     {
+      projectTitle: 'template for developers',
+      projectLink:
+        'https://684c1bafbce3a5298f343f14--polite-meringue-ca28e0.netlify.app/',
+      projectDescription:
+        'This project is built using React and is fully responsive, ensuring seamless performance across all devices. It features dynamic components, clean UI, and modern design for an optimal user experience.',
+      techListData: ['React js', 'scss', 'Ant Design', 'redux', 'JavaScript'],
+    },
+    {
+      projectTitle: 'Auto part wala',
+      projectLink: 'https://poetic-chaja-46b667.netlify.app/',
+      projectDescription:
+        'This React.js-based auto parts website was developed as a freelance project, featuring a responsive design, dynamic product listings, and seamless navigation to enhance user experience and streamline online purchases.',
+      techListData: ['React js', 'scss', 'bootstrap', 'redux', 'JavaScript'],
+    },
+    {
       projectTitle: 'Adyansh Solutions',
       projectLink: 'https://adyanshsolutions.com/',
       projectDescription:
