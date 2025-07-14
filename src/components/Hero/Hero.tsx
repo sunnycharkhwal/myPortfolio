@@ -25,7 +25,7 @@ export function Hero() {
           <h3>Front-End Developer | React.js & Modern Web Development</h3>
         </ScrollAnimation>
         <ScrollAnimation animateIn="fadeInUp" delay={0.6 * 1000}>
-          <p className="small-resume">4.6+ Years of Industry Experience</p>
+          <p className="small-resume">2.9 Years of Industry Experience</p>
         </ScrollAnimation>
         <ScrollAnimation animateIn="fadeInUp" delay={0.8 * 1000}>
           <BrowserRouter>

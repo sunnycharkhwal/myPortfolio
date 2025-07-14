@@ -24,7 +24,7 @@ export function About() {
         <ScrollAnimation animateIn="fadeInLeft" delay={0.1 * 1000}>
           <p>
             Welcome to a space built by a passionate and skilled Front-End
-            Developer with over 4.5 years of hands-on experience in creating
+            Developer with over 2.9 years of hands-on experience in creating
             visually appealing, responsive, and high-performing web
             applications. I specialize in turning creative ideas into seamless
             digital experiences using modern technologies like HTML5, CSS3,
