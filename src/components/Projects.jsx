@@ -583,7 +583,7 @@ export default function Projects() {
               boxShadow: '0 0 30px rgba(0,212,255,0.2)',
               animation: 'numberPulse 3s ease-in-out infinite',
             }}>
-              13
+              12
             </span>
             
             
@@ -838,16 +838,7 @@ export default function Projects() {
         </div>
 
         
-        <div style={{
-          textAlign: 'center',
-          padding: '2.5rem',
-          color: 'var(--muted)',
-          fontSize: '0.85rem',
-          borderTop: '1px solid var(--border)',
-          background: 'linear-gradient(180deg, transparent 0%, rgba(0, 212, 255, 0.02) 100%)',
-        }}>
-          All projects utilize real AWS services designed for production-grade environments.
-        </div>
+     
       </section>
     </>
   )
