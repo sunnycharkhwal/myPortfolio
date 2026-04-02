@@ -1,0 +1,4 @@
+I'm creating the full projects data from the HTML file.
+This will include all 13 projects with:
+- category, catLabel, title, subtitle, objective
+- steps (array), aws (array), outcomes (array)

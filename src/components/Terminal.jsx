@@ -22,45 +22,94 @@ export default function Terminal() {
 
   return (
     <div className="sc-terminal">
-      {/* Title bar */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 14px', background: 'var(--bg2)', borderBottom: '1px solid var(--border)' }}>
-        {['#ff5f56', '#ffbd2e', '#27c93f'].map(c => (
-          <span key={c} style={{ width: 10, height: 10, borderRadius: '50%', background: c, display: 'inline-block' }} />
-        ))}
-        <span style={{ flex: 1, textAlign: 'center', fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--muted)' }}>
+      
+      <div style={{ 
+        display: 'flex', alignItems: 'center', gap: 8, 
+        padding: '14px 18px', 
+        background: 'linear-gradient(180deg, rgba(255,255,255,0.03) 0%, transparent 100%)',
+        borderBottom: '1px solid var(--border)',
+      }}>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {[
+            { bg: '#ff5f56', shadow: '0 0 8px #ff5f56' },
+            { bg: '#ffbd2e', shadow: '0 0 8px #ffbd2e' },
+            { bg: '#27c93f', shadow: '0 0 8px #27c93f' }
+          ].map((c, i) => (
+            <span key={i} style={{ 
+              width: 12, height: 12, borderRadius: '50%', 
+              background: c.bg, 
+              boxShadow: c.shadow,
+              display: 'inline-block',
+              transition: 'transform 0.2s',
+              cursor: 'pointer',
+            }} />
+          ))}
+        </div>
+        <span style={{ 
+          flex: 1, textAlign: 'center', 
+          fontFamily: 'var(--mono)', fontSize: 12, 
+          color: 'var(--muted)',
+          letterSpacing: '0.02em',
+        }}>
           sunny@devops ~ zsh
         </span>
+        <div style={{ width: 52 }} /> 
       </div>
 
-      {/* Body */}
-      <div style={{ padding: '1.25rem 1.4rem', minHeight: 260, fontFamily: 'var(--mono)', fontSize: 12, lineHeight: 1.9 }}>
+      
+      <div style={{ 
+        padding: '1.5rem 1.5rem', 
+        minHeight: 280, 
+        fontFamily: 'var(--mono)', 
+        fontSize: 13, 
+        lineHeight: 2,
+        background: 'linear-gradient(180deg, transparent 0%, rgba(0, 212, 255, 0.02) 100%)',
+      }}>
         {lines.map((l, i) => {
-          if (l.type === 'blank') return <div key={i} style={{ height: 8 }} />
+          if (l.type === 'blank') return <div key={i} style={{ height: 10 }} />
 
           if (l.type === 'cursor') return (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              <span style={{ color: 'var(--green)' }}>sunny@aws</span>
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ 
+                color: 'var(--accent-green)', 
+                textShadow: '0 0 10px var(--accent-green)',
+                fontWeight: 500,
+              }}>sunny@aws</span>
               <span style={{ color: 'var(--muted)' }}>:~$</span>
               <span style={{
-                display: 'inline-block', width: 8, height: 14,
+                display: 'inline-block', width: 10, height: 18,
                 background: tick ? 'var(--accent)' : 'transparent',
-                marginLeft: 6, verticalAlign: 'middle', transition: 'background .1s',
+                boxShadow: tick ? '0 0 10px var(--accent)' : 'none',
+                marginLeft: 8, verticalAlign: 'middle', 
+                borderRadius: 2,
+                transition: 'all .15s ease',
               }} />
             </div>
           )
 
           if (l.type === 'prompt') return (
-            <div key={i} style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-              <span style={{ color: 'var(--green)' }}>sunny@aws</span>
+            <div key={i} style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              <span style={{ 
+                color: 'var(--accent-green)', 
+                textShadow: '0 0 10px var(--accent-green)',
+                fontWeight: 500,
+              }}>sunny@aws</span>
               <span style={{ color: 'var(--muted)' }}>:~$</span>
-              <span style={{ color: 'var(--text)', marginLeft: 6 }}>{l.cmd}</span>
+              <span style={{ 
+                color: 'var(--text)', 
+                marginLeft: 8,
+                textShadow: '0 0 20px rgba(255, 255, 255, 0.1)',
+              }}>{l.cmd}</span>
             </div>
           )
 
           return (
-            <div key={i} style={{ color: 'var(--muted)' }}>
+            <div key={i} style={{ color: 'var(--text-secondary)' }}>
               {l.text}
-              {l.hi   && <span style={{ color: 'var(--accent)' }}>{l.hi}</span>}
+              {l.hi && <span style={{ 
+                color: 'var(--accent)', 
+                textShadow: '0 0 10px var(--accent)',
+              }}>{l.hi}</span>}
               {l.rest && <span>{l.rest}</span>}
             </div>
           )

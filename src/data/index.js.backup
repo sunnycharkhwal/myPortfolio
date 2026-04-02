@@ -1,0 +1,577 @@
+export const NAV_LINKS = ['Skills', 'Projects', 'Experience', 'Contact']
+
+export const SKILLS = [
+  { icon: '☁',  title: 'Cloud',         tags: ['AWS', 'EKS', 'Secrets Manager', 'CloudWatch', 'IAM'] },
+  { icon: '📦', title: 'Containers',    tags: ['Kubernetes', 'Docker', 'Helm'] },
+  { icon: '⚙',  title: 'CI / CD',      tags: ['Jenkins', 'ArgoCD', 'GitLab CI', 'GitHub Actions', 'Azure DevOps'] },
+  { icon: '🏗',  title: 'IaC',          tags: ['Terraform', 'Ansible'] },
+  { icon: '📊', title: 'Observability', tags: ['Prometheus', 'Grafana', 'CloudWatch'] },
+  { icon: '🔒', title: 'Security',      tags: ['SonarQube', 'Trivy', 'OWASP', 'IAM Roles'] },
+  { icon: '🖥',  title: 'Scripting',    tags: ['Python', 'Bash', 'Shell'] },
+  { icon: '⚡', title: 'Frontend',      tags: ['React.js', 'Next.js', 'JavaScript', 'HTML', 'CSS3'] },
+]
+
+export const PROJECTS = [
+  {
+    id: 1,
+    category: 'cicd',
+    catLabel: 'CI/CD Pipeline',
+    name: 'Wanderlust — End-to-End DevSecOps Pipeline',
+    subtitle: 'Automated deployment pipeline for microservices on AWS EKS',
+    objective: 'Build a production-grade DevSecOps pipeline that automates the entire software delivery lifecycle — from code commit to production deployment — with integrated security scanning, GitOps delivery, and comprehensive observability.',
+    stack: [
+      'AWS EKS', 'Jenkins', 'ArgoCD', 'Terraform',
+      'Prometheus', 'Grafana', 'SonarQube', 'Trivy', 'Docker', 'Kubernetes',
+    ],
+    points: [
+      {
+        label: 'CI/CD Automation',
+        desc: 'Multi-stage Jenkins pipeline reducing manual deployment effort by ~60% and accelerating release cycles.',
+      },
+      {
+        label: 'Infrastructure as Code',
+        desc: 'EKS clusters via Terraform supporting 5+ microservices with fully version-controlled, reproducible environments.',
+      },
+      {
+        label: 'GitOps Delivery',
+        desc: 'ArgoCD syncing Git to the live cluster continuously — zero manual intervention.',
+      },
+      {
+        label: 'DevSecOps',
+        desc: 'SonarQube, Trivy, and OWASP dependency checks integrated at every pipeline stage.',
+      },
+      {
+        label: 'Observability Stack',
+        desc: 'Prometheus + Grafana dashboards tracking system health, resource utilisation, and alerting thresholds.',
+      },
+      {
+        label: 'Container Strategy',
+        desc: 'Optimised multi-stage Docker builds and image lifecycle management within Kubernetes.',
+      },
+    ],
+    outcomes: [
+      'Deployment time reduced from 45 min manual to ~8 min automated',
+      'Zero manual cluster interventions through GitOps automation',
+      'Security vulnerabilities caught at every pipeline stage',
+      '5+ microservices orchestrated with full observability',
+    ],
+  },
+  {
+    id: 2,
+    name: 'E-Commerce Platform: Automated Multi-Stage Deployment Pipeline',
+    status: 'Production',
+    statusColor: 'green',
+    stack: [
+      'CodePipeline', 'CodeBuild', 'CodeDeploy', 'ECR', 'ECS Fargate', 'Lambda', 'CloudWatch', 'SNS', 'S3',
+    ],
+    points: [
+      {
+        label: 'Source & Trigger',
+        desc: 'Developer pushes to GitHub. AWS CodePipeline detects the change via webhook and starts the pipeline.',
+      },
+      {
+        label: 'Build & Test',
+        desc: 'AWS CodeBuild runs ESLint, Jest unit tests, and builds the Docker image. Fails fast and reports back to GitHub PR.',
+      },
+      {
+        label: 'Security Scan',
+        desc: 'Amazon ECR image scanning + Snyk CLI check in CodeBuild catches known CVEs before the image is pushed.',
+      },
+      {
+        label: 'Staging Deploy',
+        desc: 'AWS ECS (Fargate) deploys the new image to the staging cluster. Blue/green deployment using AWS CodeDeploy.',
+      },
+      {
+        label: 'Smoke Tests',
+        desc: 'Post-deploy Lambda function triggers automated Postman collection via AWS Lambda and checks HTTP 200s on critical endpoints.',
+      },
+      {
+        label: 'Production Deploy',
+        desc: 'Manual approval gate in CodePipeline → blue/green swap on the prod ECS cluster. Automatic rollback if CloudWatch alarms fire within 5 minutes.',
+      },
+    ],
+    metrics: [
+      { val: '45→8 min', label: 'Deployment time reduced' },
+      { val: 'Zero', label: 'Downtime deploys' },
+      { val: '100%', label: 'Deployment auditability' },
+    ],
+  },
+  {
+    id: 3,
+    name: 'SaaS Startup: Multi-Environment AWS Infrastructure with Terraform',
+    status: 'Production',
+    statusColor: 'green',
+    stack: [
+      'Terraform', 'S3', 'DynamoDB', 'EKS', 'RDS', 'VPC', 'IAM', 'Secrets Manager', 'KMS', 'SNS', 'Lambda',
+    ],
+    points: [
+      {
+        label: 'Repo Structure',
+        desc: 'Terraform modules for VPC, EKS, RDS, IAM. Environment-specific tfvars files. Remote state in S3 with DynamoDB locking.',
+      },
+      {
+        label: 'CI Validation',
+        desc: 'GitHub Actions runs terraform fmt, validate, tfsec static analysis, and terraform plan on every PR. Plan output is posted as a PR comment.',
+      },
+      {
+        label: 'Apply Workflow',
+        desc: 'Merging to main triggers terraform apply for dev automatically. Staging and prod require a manual approval step via GitHub Environment protection rules.',
+      },
+      {
+        label: 'Drift Detection',
+        desc: 'Scheduled GitHub Actions job runs terraform plan daily and posts a Slack alert via SNS → Lambda if any drift is detected.',
+      },
+      {
+        label: 'Secret Management',
+        desc: 'All secrets injected at runtime from AWS Secrets Manager — never in tfvars. IAM roles use least-privilege policies generated per module.',
+      },
+      {
+        label: 'State Management',
+        desc: 'Separate S3 bucket and DynamoDB table per environment. State files are versioned and encrypted with KMS.',
+      },
+    ],
+    metrics: [
+      { val: '12 min', label: 'New environment spin-up time' },
+      { val: '24h', label: 'Drift detection interval' },
+      { val: 'Zero', label: 'Snowflake resources' },
+    ],
+  },
+  {
+    id: 4,
+    name: 'FinTech App: Dockerized Microservices on Amazon EKS',
+    status: 'Production',
+    statusColor: 'green',
+    stack: [
+      'EKS', 'ECR', 'ALB', 'ACM', 'EC2 Spot', 'IRSA', 'CloudWatch Container Insights', 'VPC', 'Helm', 'ArgoCD', 'KEDA',
+    ],
+    points: [
+      {
+        label: 'Dockerize Services',
+        desc: 'Each service gets a hardened multi-stage Dockerfile — build stage compiles, final stage uses distroless base for minimal attack surface.',
+      },
+      {
+        label: 'EKS Cluster Setup',
+        desc: 'Amazon EKS cluster provisioned via Terraform. Node groups with mixed on-demand + spot instances. IRSA for pod-level IAM roles.',
+      },
+      {
+        label: 'Helm Charts',
+        desc: 'Each microservice packaged as a Helm chart with environment-specific values. Deployed via ArgoCD GitOps — cluster state matches Git at all times.',
+      },
+      {
+        label: 'Autoscaling',
+        desc: 'HPA (CPU/memory) + KEDA (queue-depth scaling). Cluster Autoscaler adds/removes EC2 nodes automatically. Handles 10x traffic spikes.',
+      },
+      {
+        label: 'Health & Recovery',
+        desc: 'Liveness + readiness probes on every pod. Pod Disruption Budgets ensure at least one replica survives node drain during upgrades.',
+      },
+      {
+        label: 'Ingress & TLS',
+        desc: 'AWS Load Balancer Controller + ACM certificate for TLS termination. NGINX Ingress for path-based routing between services.',
+      },
+    ],
+    metrics: [
+      { val: '2→40', label: 'Pods auto-scale range' },
+      { val: '90 sec', label: 'Node failure recovery' },
+      { val: '35%', label: 'Resource utilization improvement' },
+    ],
+  },
+  {
+    id: 5,
+    name: 'Retail Chain: Lift-and-Shift + Re-Architecture to AWS',
+    status: 'Completed',
+    statusColor: 'blue',
+    stack: [
+      'EC2', 'MGN', 'DMS', 'Aurora Serverless', 'Lambda', 'API Gateway', 'S3', 'CloudFront', 'Redshift', 'Direct Connect', 'Route 53',
+    ],
+    points: [
+      {
+        label: 'Discovery & Assessment',
+        desc: 'AWS Application Discovery Service + Migration Evaluator scan all 80 on-prem servers. Dependency mapping and TCO analysis produced automatically.',
+      },
+      {
+        label: 'Phase 1 — Lift & Shift',
+        desc: 'AWS MGN (Application Migration Service) replicates servers to EC2 with near-zero downtime. Database migrated using AWS DMS with ongoing replication during cutover.',
+      },
+      {
+        label: 'Network Connectivity',
+        desc: 'AWS Direct Connect for secure, low-latency hybrid connectivity during the transition period. VPN as failover path.',
+      },
+      {
+        label: 'Phase 2 — Re-Architect',
+        desc: 'Monolithic app API layer moved to Lambda + API Gateway. MySQL moved from EC2 to Amazon Aurora Serverless v2. Static assets to S3 + CloudFront.',
+      },
+      {
+        label: 'Data Migration',
+        desc: 'Historical transaction data (5 TB) migrated to Amazon Redshift for analytics. Replaces on-prem reporting server that took 4 hours per report.',
+      },
+      {
+        label: 'Cutover & Validation',
+        desc: 'Blue/green DNS cutover via Route 53 with weighted routing — 5% → 25% → 100% traffic shift over 48 hours with automated rollback triggers.',
+      },
+    ],
+    metrics: [
+      { val: '6 weeks', label: 'Phase 1 completion time' },
+      { val: '42%', label: 'Cost reduction vs EC2' },
+      { val: '4h→8s', label: 'Report generation time' },
+    ],
+  },
+  {
+    id: 6,
+    name: 'Healthcare SaaS: Full-Stack Observability Platform',
+    status: 'Production',
+    statusColor: 'green',
+    stack: [
+      'CloudWatch Logs', 'CloudWatch Metrics', 'AWS X-Ray', 'Amazon Managed Grafana', 'SNS', 'S3', 'Athena', 'Lambda', 'EventBridge',
+    ],
+    points: [
+      {
+        label: 'Structured Logging',
+        desc: 'All services emit JSON logs to Amazon CloudWatch Logs via the CloudWatch Agent. Log groups per service. CloudWatch Insights for ad-hoc queries.',
+      },
+      {
+        label: 'Distributed Tracing',
+        desc: 'AWS X-Ray SDK instrumented in all Lambda functions and ECS services. Traces show exact latency contribution of each downstream call and DB query.',
+      },
+      {
+        label: 'Metrics & Dashboards',
+        desc: 'Application metrics (order rate, error rate, p99 latency) pushed as CloudWatch Custom Metrics. Executive dashboard in Amazon Managed Grafana.',
+      },
+      {
+        label: 'SLO Alerting',
+        desc: 'CloudWatch Composite Alarms model SLOs: "99.5% of requests succeed within 500ms over 5 min". Breach pages on-call via SNS → PagerDuty.',
+      },
+      {
+        label: 'Log Archival',
+        desc: 'Logs shipped to S3 via CloudWatch Subscriptions. Athena queries raw logs for compliance investigations. Retained 7 years for HIPAA.',
+      },
+      {
+        label: 'Anomaly Detection',
+        desc: 'CloudWatch Anomaly Detection learns seasonal patterns. Auto-scales alarm thresholds for business hours vs off-peak without manual tuning.',
+      },
+    ],
+    metrics: [
+      { val: '18→2 min', label: 'Mean time to detect' },
+      { val: '7 years', label: 'HIPAA-compliant log retention' },
+      { val: '99.5%', label: 'SLO target' },
+    ],
+  },
+  {
+    id: 7,
+    name: 'Insurance Platform: Security-First CI/CD Pipeline (DevSecOps)',
+    status: 'Production',
+    statusColor: 'green',
+    stack: [
+      'CodePipeline', 'CodeBuild', 'ECR Enhanced Scanning', 'Secrets Manager', 'GuardDuty', 'Security Hub', 'AWS Config', 'Audit Manager', 'IAM', 'KMS',
+    ],
+    points: [
+      {
+        label: 'Pre-Commit Hooks',
+        desc: 'git-secrets and detect-secrets block commits containing API keys or credentials before they ever reach GitHub.',
+      },
+      {
+        label: 'SAST in Pipeline',
+        desc: 'CodeBuild runs SonarQube (code quality + security rules) and Checkov (IaC scanning). CVSS ≥ 7.0 vulnerabilities fail the build.',
+      },
+      {
+        label: 'Container Scanning',
+        desc: 'Amazon ECR Enhanced Scanning (powered by Snyk) scans every pushed image. Images with critical CVEs are blocked from ECS deployment by Lambda policy check.',
+      },
+      {
+        label: 'Runtime Security',
+        desc: 'Amazon GuardDuty monitors all accounts for threats (crypto mining, credential exfiltration). AWS Security Hub aggregates findings across services.',
+      },
+      {
+        label: 'Secrets Management',
+        desc: 'All database passwords, API keys, and certificates stored in AWS Secrets Manager. Automatic 30-day rotation. Applications use IAM role + SDK — no hardcoded secrets anywhere.',
+      },
+      {
+        label: 'Compliance Evidence',
+        desc: 'AWS Config rules continuously check S3 bucket policies, security group rules, and encryption settings. AWS Audit Manager auto-collects PCI-DSS evidence.',
+      },
+    ],
+    metrics: [
+      { val: '95%', label: 'Vulnerabilities caught earlier' },
+      { val: 'Zero', label: 'Hardcoded secrets' },
+      { val: '3w→2d', label: 'PCI-DSS audit prep time' },
+    ],
+  },
+  {
+    id: 8,
+    name: 'Ride-Sharing App: Automated Incident Response & Runbooks',
+    status: 'Production',
+    statusColor: 'green',
+    stack: [
+      'CloudWatch', 'SNS', 'Lambda', 'SSM Automation', 'EventBridge', 'CloudTrail', 'S3', 'Bedrock', 'IAM',
+    ],
+    points: [
+      {
+        label: 'Alert → Ticket',
+        desc: 'CloudWatch Alarms fire to SNS. Lambda function creates a PagerDuty incident, a Jira ticket, and posts in a dedicated Slack war-room channel — automatically.',
+      },
+      {
+        label: 'Auto-Remediation',
+        desc: 'AWS Systems Manager Automation documents handle known issues: ECS task OOMKill → restart task; RDS connections exhausted → kill idle connections; EC2 disk full → expand EBS volume.',
+      },
+      {
+        label: 'Runbook Execution',
+        desc: 'Slack bot (Lambda-backed) responds to /runbook <symptom> and surfaces the relevant SSM Automation document. On-call engineer approves, bot executes — full audit trail in CloudTrail.',
+      },
+      {
+        label: 'Escalation Logic',
+        desc: 'If P1 is unacknowledged in 5 min, EventBridge triggers Lambda to page the secondary on-call, then the engineering manager at 10 min via multi-level PagerDuty policy.',
+      },
+      {
+        label: 'Timeline Recording',
+        desc: 'All Slack messages in the war-room, CloudWatch metric data, and X-Ray traces are automatically archived to S3 to form the incident timeline for post-mortems.',
+      },
+      {
+        label: 'Post-Mortem Generation',
+        desc: 'Lambda + Bedrock (Claude) drafts a structured post-mortem from the timeline: summary, impact, root cause, contributing factors, action items. Team edits and publishes to Confluence.',
+      },
+    ],
+    metrics: [
+      { val: '40%', label: 'Incidents auto-remediated' },
+      { val: '25→4 min', label: 'MTTR for known failures' },
+      { val: '100%', label: 'Complete incident timelines' },
+    ],
+  },
+  {
+    id: 9,
+    name: 'B2B SaaS: Zero-Downtime Database Schema Migrations',
+    status: 'Production',
+    statusColor: 'green',
+    stack: [
+      'Amazon Aurora PostgreSQL', 'RDS Fast Clone', 'CodeBuild', 'Lambda', 'S3', 'Secrets Manager', 'CloudWatch', 'SNS', 'Flyway',
+    ],
+    points: [
+      {
+        label: 'Migration Authoring',
+        desc: 'Schema changes written as versioned Flyway SQL migration files (V1__add_users_table.sql). Changes are code-reviewed like application code in GitHub PRs.',
+      },
+      {
+        label: 'Validation in CI',
+        desc: 'CodeBuild spins up an Aurora PostgreSQL clone using RDS fast cloning and runs Flyway migrate against it — validating the migration takes under 30 seconds in CI.',
+      },
+      {
+        label: 'Expand Phase',
+        desc: 'Production migrations use the Expand/Contract pattern. Phase 1 (additive only): add new column/table. Application deployed to handle both old and new schema. No locks, no downtime.',
+      },
+      {
+        label: 'Data Migration',
+        desc: 'Background Lambda function backfills data in 1000-row batches during off-peak hours. Progress tracked in a migration_status table. Idempotent — safe to re-run.',
+      },
+      {
+        label: 'Contract Phase',
+        desc: 'After all data is migrated and old code paths are removed: Phase 2 drops old columns. Short table lock, but < 50ms on empty/small columns. Flyway repair handles failures.',
+      },
+      {
+        label: 'Backup & Rollback',
+        desc: 'Automated Aurora snapshot taken before every migration. Point-in-time recovery to any second in the last 35 days. Rollback scripts tested in CI alongside forward migrations.',
+      },
+    ],
+    metrics: [
+      { val: 'Zero', label: 'Maintenance windows' },
+      { val: '4×/week', label: 'Schema deployment frequency' },
+      { val: '<3 min', label: 'Rollback time' },
+    ],
+  },
+  {
+    id: 10,
+    name: 'Media Streaming Platform: Service Mesh with AWS App Mesh + EKS',
+    status: 'Production',
+    statusColor: 'green',
+    stack: [
+      'EKS', 'AWS App Mesh', 'ACM Private CA', 'AWS X-Ray', 'CloudWatch', 'ALB', 'ECR', 'IAM', 'Envoy',
+    ],
+    points: [
+      {
+        label: 'App Mesh Setup',
+        desc: 'AWS App Mesh deployed on EKS. Envoy sidecar injected automatically into all service pods via admission webhook. Mesh config stored as Kubernetes CRDs.',
+      },
+      {
+        label: 'mTLS Everywhere',
+        desc: 'AWS Certificate Manager Private CA issues short-lived certificates to every Envoy sidecar. All east-west traffic is mutually authenticated and encrypted — no code changes required.',
+      },
+      {
+        label: 'Canary Releases',
+        desc: 'New version of the recommendation service deployed alongside old. App Mesh VirtualRouter routes 5% traffic to v2 using weighted targets. Monitor error rate → auto-shift to 100% or rollback.',
+      },
+      {
+        label: 'Circuit Breaking',
+        desc: 'Envoy outlier detection configured: if a pod returns 5xx on 50% of requests in 10s, it is ejected from the load balancer pool for 30s. Prevents one bad instance from degrading all traffic.',
+      },
+      {
+        label: 'Observability',
+        desc: 'AWS X-Ray integrated with Envoy. Every request traced end-to-end across all 12 services. CloudWatch Container Insights shows per-route latency histograms.',
+      },
+      {
+        label: 'Traffic Shaping',
+        desc: 'Retry policies (3 retries on 503, 50ms base delay), timeout policies (2s service timeout), and gRPC deadline propagation configured at mesh layer — no changes to application code.',
+      },
+    ],
+    metrics: [
+      { val: '<5%', label: 'Canary release user impact' },
+      { val: '3', label: 'Outages prevented by circuit breaking' },
+      { val: '12%', label: 'Latency reduction' },
+    ],
+  },
+  {
+    id: 11,
+    name: 'Scale-Up: AWS Cost Optimization & FinOps Program',
+    status: 'Production',
+    statusColor: 'green',
+    stack: [
+      'Cost Explorer', 'CUR', 'QuickSight', 'AWS Config', 'Compute Optimizer', 'Savings Plans', 'Spot Instances', 'AWS Budgets', 'Lambda', 'Organizations',
+    ],
+    points: [
+      {
+        label: 'Cost Visibility',
+        desc: 'AWS Cost Explorer + AWS Cost and Usage Reports sent to S3 → Amazon QuickSight dashboard. Teams see their own costs broken down by service, environment, and resource tag.',
+      },
+      {
+        label: 'Tagging Enforcement',
+        desc: 'AWS Config rule flags any resource missing required tags (team, environment, project). Service Control Policies in AWS Organizations block resource creation without mandatory tags.',
+      },
+      {
+        label: 'Rightsizing',
+        desc: 'AWS Compute Optimizer identifies over-provisioned EC2 instances, Lambda memory, and EBS volumes. Recommendations reviewed weekly; automated resizing for non-prod via Lambda + SSM.',
+      },
+      {
+        label: 'Spot & Savings Plans',
+        desc: 'Stateless ECS and EKS workloads migrated to Spot Instances (60-80% savings). Committed baseline purchased as Compute Savings Plans. Spot interruption handled gracefully by ECS task drain.',
+      },
+      {
+        label: 'Idle Resource Cleanup',
+        desc: 'Lambda scheduled daily: stops EC2 instances tagged env=dev at 7pm, terminates unused EBS snapshots older than 90 days, deletes unattached EIPs. Saves ~$8K/month passively.',
+      },
+      {
+        label: 'Budget Alerts',
+        desc: 'AWS Budgets per team with 80% and 100% threshold alerts to Slack. Forecast-based alerts warn if the team is trending toward overspend 7 days before month end.',
+      },
+    ],
+    metrics: [
+      { val: '$68K', label: 'Monthly savings achieved' },
+      { val: '38%', label: 'Total cost reduction' },
+      { val: '100%', label: 'Tagging compliance' },
+    ],
+  },
+  {
+    id: 12,
+    name: 'Banking App: Multi-Region Active-Active DR with Chaos Testing',
+    status: 'Production',
+    statusColor: 'green',
+    stack: [
+      'Route 53', 'Aurora Global Database', 'ElastiCache Global Datastore', 'S3 CRR', 'ECS', 'FIS', 'EventBridge', 'Lambda', 'CloudWatch',
+    ],
+    points: [
+      {
+        label: 'Active-Active Architecture',
+        desc: 'Application deployed identically in us-east-1 and eu-west-1. Route 53 Latency Routing + health checks send users to the nearest healthy region. Either region can handle 100% of traffic.',
+      },
+      {
+        label: 'Global Database',
+        desc: 'Amazon Aurora Global Database replicates writes from primary to secondary region with < 1 second lag. In a regional failure, secondary is promoted to writable in ~60 seconds.',
+      },
+      {
+        label: 'Stateless by Design',
+        desc: 'All application sessions stored in ElastiCache (Redis Global Datastore) — replicated cross-region. S3 assets use S3 Cross-Region Replication with versioning.',
+      },
+      {
+        label: 'Automated Failover',
+        desc: 'Route 53 health checks detect regional failure in 10 seconds. EventBridge triggers a Lambda runbook that promotes the Aurora secondary and updates DNS weights automatically.',
+      },
+      {
+        label: 'Chaos Engineering',
+        desc: 'AWS Fault Injection Simulator (FIS) experiments run monthly: terminate random ECS tasks, inject RDS latency, simulate AZ failure. Experiments are code (CDK) and run in prod during low-traffic windows.',
+      },
+      {
+        label: 'Runbook Validation',
+        desc: 'Each FIS experiment automatically measures actual RTO and RPO and publishes results to a DR Health dashboard in CloudWatch. SLA breach auto-creates a Jira ticket for remediation.',
+      },
+    ],
+    metrics: [
+      { val: '3m 42s', label: 'Actual RTO (target < 5 min)' },
+      { val: '18 sec', label: 'Average RPO' },
+      { val: 'Zero', label: 'Unplanned outages in 18mo' },
+    ],
+  },
+  {
+    id: 13,
+    name: 'Government Agency: Strangling a 20-Year-Old Java Monolith',
+    status: 'Completed',
+    statusColor: 'blue',
+    stack: [
+      'API Gateway', 'Lambda', 'Cognito', 'Aurora', 'DMS', 'EventBridge', 'SQS', 'AppConfig', 'EC2', 'CloudWatch',
+    ],
+    points: [
+      {
+        label: 'Strangler Proxy',
+        desc: 'Amazon API Gateway acts as the strangler proxy — all traffic enters here. Initially it forwards 100% to the monolith on EC2. New microservices are added as alternative routes over time.',
+      },
+      {
+        label: 'First Extract: Auth',
+        desc: 'Authentication extracted first (highest leverage, clearest boundary). New auth service built as Lambda + Cognito. API Gateway routes /auth/* to new service. Monolith accepts JWT tokens from new service.',
+      },
+      {
+        label: 'Database Decoupling',
+        desc: 'Each extracted service gets its own Amazon Aurora database. AWS DMS syncs the relevant tables from the legacy Oracle DB to the new service DB during the transition period.',
+      },
+      {
+        label: 'Event-Driven Integration',
+        desc: 'As services are extracted, Amazon EventBridge carries domain events between the monolith and new services. Monolith publishes via SQS bridge; new services consume natively.',
+      },
+      {
+        label: 'Traffic Migration',
+        desc: 'Each new service is rolled out with weighted API Gateway routes: 5% → 25% → 100%. Feature flags via AWS AppConfig allow instant rollback to the monolith path without redeployment.',
+      },
+      {
+        label: 'Monolith Retirement',
+        desc: 'After 18 months and 14 extracted services: 0% of traffic routes to monolith. WebSphere server decommissioned. Legacy Oracle DB migrated to Aurora PostgreSQL via DMS. Job done.',
+      },
+    ],
+    metrics: [
+      { val: '18 months', label: 'Migration duration' },
+      { val: '14', label: 'Services extracted' },
+      { val: '$120K/yr', label: 'WebSphere licensing savings' },
+    ],
+  },
+]
+
+export const EXPERIENCE = {
+  title: 'Lead Front-End Developer',
+  company: 'Maxlence Digital (OPC) Pvt. Ltd.',
+  location: 'Gurgaon',
+  period: 'Apr 2022 – Nov 2024',
+  points: [
+    'Built and maintained a modular React component library improving reusability across 30+ projects.',
+    'Developed high-performance responsive web apps with React.js and Next.js.',
+    'Optimised performance via lazy loading, code splitting, and bundle optimisation — reducing load time by ~30%.',
+    'Enforced code quality through structured reviews, documentation, and team feedback loops.',
+    'Collaborated with UI/UX and product teams to ship user-centric interfaces.',
+  ],
+}
+
+export const CONTACT = [
+  { icon: '✉',  label: 'Email',     val: 'sunny.charkhwal@gmail.com',     href: 'mailto:sunny.charkhwal@gmail.com' },
+  { icon: 'in', label: 'LinkedIn',  val: 'linkedin.com/in/sunnycharkhwal', href: 'https://www.linkedin.com/in/sunnycharkhwal' },
+  { icon: '☎',  label: 'Phone',     val: '+91 9013030173',                 href: 'tel:+919013030173' },
+  { icon: '⬡',  label: 'Portfolio', val: 'sunnycharkhwal.in',              href: 'https://www.sunnycharkhwal.in' },
+]
+
+export const TERMINAL_LINES = [
+  { type: 'prompt', cmd: 'kubectl get nodes' },
+  { type: 'out',    text: 'NAME        STATUS   ROLES    AGE' },
+  { type: 'out',    text: 'node-01     ', hi: 'Ready', rest: '    master   14d' },
+  { type: 'out',    text: 'node-02     ', hi: 'Ready', rest: '    worker   14d' },
+  { type: 'out',    text: 'node-03     ', hi: 'Ready', rest: '    worker   14d' },
+  { type: 'blank' },
+  { type: 'prompt', cmd: 'terraform apply --auto-approve' },
+  { type: 'out',    text: 'Plan: ', hi: '5 to add', rest: ', 0 to change, 0 to destroy' },
+  { type: 'out',    text: '',       hi: 'Apply complete!', rest: ' Resources: 5 added.' },
+  { type: 'blank' },
+  { type: 'prompt', cmd: 'argocd app sync wanderlust' },
+  { type: 'out',    text: '', hi: 'SYNCED', rest: '  Healthy  wanderlust' },
+  { type: 'blank' },
+  { type: 'cursor' },
+]
