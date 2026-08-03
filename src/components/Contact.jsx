@@ -1,49 +1,7 @@
 import { useRef, useEffect, useState } from 'react'
 import SectionHeader from './SectionHeader.jsx'
 import useFadeIn from '../hooks/useFadeIn.js'
-import { 
-  SiTerraform, SiKubernetes, SiDocker, 
-  SiJenkins, SiGrafana, SiPrometheus, SiHelm 
-} from 'react-icons/si'
-import { FaAws } from 'react-icons/fa'
-
-const floatingIcons = [
-  { Icon: SiTerraform, color: '#7B42BC', delay: 0 },
-  { Icon: FaAws, color: '#FF9900', delay: 0.5 },
-  { Icon: SiKubernetes, color: '#326CE5', delay: 1 },
-  { Icon: SiDocker, color: '#2496ED', delay: 1.5 },
-  { Icon: SiJenkins, color: '#D24939', delay: 2 },
-  { Icon: SiGrafana, color: '#F46800', delay: 2.5 },
-  { Icon: SiPrometheus, color: '#E6522C', delay: 3 },
-  { Icon: SiHelm, color: '#0F1689', delay: 3.5 },
-]
-
-const services = [
-  { 
-    icon: '☁️', 
-    title: 'Cloud Architecture', 
-    desc: 'AWS, GCP, Azure infrastructure design & migration',
-    gradient: 'linear-gradient(135deg, #FF9900 0%, #ff6b35 100%)'
-  },
-  { 
-    icon: '🚀', 
-    title: 'CI/CD Pipelines', 
-    desc: 'Automated deployments with Jenkins, ArgoCD, GitHub Actions',
-    gradient: 'linear-gradient(135deg, #00d4ff 0%, #0099ff 100%)'
-  },
-  { 
-    icon: '📦', 
-    title: 'Container Orchestration', 
-    desc: 'Kubernetes clusters, Helm charts, Docker optimization',
-    gradient: 'linear-gradient(135deg, #326CE5 0%, #1e4db7 100%)'
-  },
-  { 
-    icon: '🏗️', 
-    title: 'Infrastructure as Code', 
-    desc: 'Terraform, Ansible automation & best practices',
-    gradient: 'linear-gradient(135deg, #7B42BC 0%, #5a2d91 100%)'
-  },
-]
+import { CONTACT_SERVICES, CONTACT_FLOATING_ICONS } from '../data/index.js'
 
 export default function Contact() {
   const ref = useRef()
@@ -65,7 +23,7 @@ export default function Contact() {
 
   return (
     <section id="contact" ref={ref} className="sc-section" style={{ overflow: 'hidden' }}>
-      <SectionHeader num="04" title="Get In Touch" />
+      <SectionHeader num="03" title="Get In Touch" />
 
       
       <div style={{
@@ -95,7 +53,7 @@ export default function Contact() {
         }} />
 
         
-        {floatingIcons.map(({ Icon, color, delay }, i) => (
+        {CONTACT_FLOATING_ICONS.map(({ Icon, color, delay }, i) => (
           <div
             key={i}
             style={{
@@ -266,21 +224,6 @@ export default function Contact() {
             </a>
           </div>
         </div>
-
-        
-        <div style={{
-          position: 'absolute',
-          bottom: 20,
-          right: 20,
-          fontFamily: 'var(--mono)',
-          fontSize: 11,
-          color: 'var(--accent)',
-          opacity: 0.3,
-          display: 'none',
-          '@media (min-width: 768px)': { display: 'block' }
-        }}>
-          <span style={{ color: 'var(--accent-purple)' }}>terraform</span> apply <span style={{ color: 'var(--accent-green)' }}>--auto-approve</span>
-        </div>
       </div>
 
       
@@ -307,7 +250,7 @@ export default function Contact() {
         gap: '1.25rem',
         marginBottom: '3rem',
       }}>
-        {services.map((service, i) => (
+        {CONTACT_SERVICES.map((service, i) => (
           <div
             key={service.title}
             style={{

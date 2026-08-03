@@ -1,6 +1,8 @@
 # Sunny Charkhwal — DevOps Portfolio
 
-A production-grade personal portfolio built with **React 18 + Vite**.
+A production-grade personal portfolio built with **React 18 + Vite 5**, featuring an
+animated DevOps aesthetic, 12 real-world project case studies, and a fully
+interactive particle background.
 
 ---
 
@@ -10,8 +12,12 @@ A production-grade personal portfolio built with **React 18 + Vite**.
 |------|---------|
 | React 18 | UI framework |
 | Vite 5 | Dev server & bundler |
-| CSS Variables | Theming & design tokens |
-| IntersectionObserver | Scroll-triggered animations |
+| Redux Toolkit + React-Redux | App-level UI state (active section, project filter, modal) |
+| MUI (Material UI) | Dialog, Button, Fab, IconButton & transitions |
+| Emotion | Styling engine for MUI |
+| react-icons | Tech/brand iconography |
+| CSS Variables | Design tokens & theming (`src/index.css`) |
+| IntersectionObserver | Scroll-spy & scroll-reveal animations |
 
 ---
 
@@ -23,29 +29,36 @@ sunny-portfolio/
 │   └── favicon.svg
 ├── src/
 │   ├── components/
-│   │   ├── Nav.jsx          # Fixed navbar + mobile drawer
-│   │   ├── Hero.jsx         # Hero section with stats
-│   │   ├── Terminal.jsx     # Animated typewriter terminal
-│   │   ├── Skills.jsx       # Tech stack grid
-│   │   ├── Projects.jsx     # Wanderlust DevSecOps project
-│   │   ├── Experience.jsx   # Work history timeline
-│   │   ├── Contact.jsx      # Contact card grid
-│   │   ├── Footer.jsx       # Footer
-│   │   ├── BackToTop.jsx    # Floating back-to-top button
-│   │   └── SectionHeader.jsx
+│   │   ├── Nav.jsx              # Fixed navbar + mobile drawer
+│   │   ├── Hero.jsx             # Hero with typewriter role + orbital DevOps visual
+│   │   ├── Skills.jsx           # Tech stack grid (8 categories)
+│   │   ├── Projects.jsx         # Filterable project grid + MUI detail modal
+│   │   ├── Experience.jsx       # Work history + achievements
+│   │   ├── Contact.jsx          # Contact cards & CTAs
+│   │   ├── Footer.jsx           # Footer with animated terminal line
+│   │   ├── BackToTop.jsx        # Floating back-to-top FAB
+│   │   ├── DevOpsBackground.jsx # Interactive particle/badge background canvas
+│   │   └── SectionHeader.jsx    # Shared section heading
 │   ├── data/
-│   │   └── index.js         # All portfolio content (edit here)
+│   │   └── index.js             # All portfolio content (edit here)
 │   ├── hooks/
-│   │   ├── useFadeIn.js     # Scroll-reveal hook
-│   │   ├── useActiveSection.js  # Active nav link tracker
-│   │   └── useScrolled.js   # Navbar scroll state
+│   │   ├── useFadeIn.js         # Scroll-reveal hook
+│   │   ├── useActiveSection.js  # Active nav link tracker (scroll-spy)
+│   │   └── useScrolled.js       # Navbar scroll state
+│   ├── store/
+│   │   ├── store.js             # Redux store configuration
+│   │   └── uiSlice.js           # UI state slice
 │   ├── utils/
-│   │   └── scrollTo.js      # Smooth scroll helper
+│   │   └── scrollTo.js          # Smooth scroll helper
 │   ├── App.jsx
-│   ├── index.css            # Global styles & CSS variables
+│   ├── theme.js                 # MUI theme aligned with CSS tokens
+│   ├── index.css                # Global styles & CSS variables
 │   └── main.jsx
 ├── index.html
 ├── vite.config.js
+├── vercel.json
+├── Dockerfile
+├── docker-compose.yaml
 ├── package.json
 └── .gitignore
 ```
@@ -83,12 +96,14 @@ npm run preview    # preview the production build locally
 
 All portfolio content lives in **`src/data/index.js`** — edit that single file to update:
 
-- `SKILLS` — tech stack cards
-- `PROJECT` — project name, tech stack, bullet points, metrics
-- `EXPERIENCE` — job title, company, bullet points
+- `NAV_LINKS` — sections shown in the navbar
+- `SKILLS` — tech stack categories and tags
+- `PROJECTS` — the 12 project case studies (objective, steps, AWS services, outcomes)
+- `EXPERIENCE` — job title, company, responsibilities
 - `CONTACT` — email, LinkedIn, phone, portfolio URL
 
-Global colours and fonts are CSS variables in **`src/index.css`** under `:root`.
+Global colours and fonts are CSS variables in **`src/index.css`** under `:root`, mirrored
+into the MUI theme in **`src/theme.js`**.
 
 ---
 
@@ -99,6 +114,21 @@ Global colours and fonts are CSS variables in **`src/index.css`** under `:root`.
 npm install -g vercel
 vercel
 ```
+Output directory is configured as `dist` in `vercel.json`.
+
+### Docker
+A multi-stage build (Node build → nginx serve) is included.
+
+```bash
+# Build and run with Docker
+docker build -t sunny-portfolio .
+docker run -p 8080:80 sunny-portfolio
+
+# Or with docker-compose
+docker compose up --build
+```
+
+The site is served at [http://localhost:8080](http://localhost:8080).
 
 ### Netlify
 ```bash

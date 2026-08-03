@@ -10,12 +10,12 @@ import BackToTop      from './components/BackToTop.jsx'
 import DevOpsBackground from './components/DevOpsBackground.jsx'
 
 export default function App() {
-  const active = useActiveSection()
+  useActiveSection()
 
   return (
     <>
       <DevOpsBackground />
-      <Nav active={active} />
+      <Nav />
       <Hero />
       <Skills />
       <Projects />

@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
+import { useDispatch } from 'react-redux'
 import { NAV_LINKS } from '../data/index.js'
+import { setActiveSection } from '../store/uiSlice.js'
 
 export default function useActiveSection() {
-  const [active, setActive] = useState('hero')
+  const dispatch = useDispatch()
 
   useEffect(() => {
 
@@ -43,7 +45,7 @@ export default function useActiveSection() {
         })
 
         if (bestSection) {
-          setActive(bestSection)
+          dispatch(setActiveSection(bestSection))
         }
       },
       { 
@@ -54,7 +56,5 @@ export default function useActiveSection() {
 
     els.forEach(s => obs.observe(s))
     return () => obs.disconnect()
-  }, [])
-
-  return active
+  }, [dispatch])
 }

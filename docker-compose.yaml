@@ -1,7 +1,5 @@
-version: '3.9'
-
 services:
   web:
-    image: trainwithshubham/node-app:latest
+    build: .
     ports:
-      - "8001:8001"
+      - "8080:80"

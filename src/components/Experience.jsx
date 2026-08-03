@@ -1,30 +1,7 @@
 import { useRef, useEffect, useState } from 'react'
-import { EXPERIENCE } from '../data/index.js'
+import { EXPERIENCE, EXPERIENCE_TECH, EXPERIENCE_ACHIEVEMENTS } from '../data/index.js'
 import SectionHeader from './SectionHeader.jsx'
 import useFadeIn from '../hooks/useFadeIn.js'
-import { 
-  SiReact, SiNextdotjs, SiJavascript, SiTypescript,
-  SiTailwindcss, SiGit, SiWebpack, SiFigma
-} from 'react-icons/si'
-import { FaCode, FaRocket, FaUsers, FaChartLine } from 'react-icons/fa'
-
-const techStack = [
-  { Icon: SiReact, name: 'React', color: '#61DAFB' },
-  { Icon: SiNextdotjs, name: 'Next.js', color: '#ffffff' },
-  { Icon: SiJavascript, name: 'JavaScript', color: '#F7DF1E' },
-  { Icon: SiTypescript, name: 'TypeScript', color: '#3178C6' },
-  { Icon: SiTailwindcss, name: 'Tailwind', color: '#06B6D4' },
-  { Icon: SiGit, name: 'Git', color: '#F05032' },
-  { Icon: SiWebpack, name: 'Webpack', color: '#8DD6F9' },
-  { Icon: SiFigma, name: 'Figma', color: '#F24E1E' },
-]
-
-const achievements = [
-  { icon: FaCode, value: '30+', label: 'Projects Delivered', color: '#00d4ff' },
-  { icon: FaRocket, value: '30%', label: 'Performance Boost', color: '#a855f7' },
-  { icon: FaUsers, value: '5+', label: 'Team Members Led', color: '#10b981' },
-  { icon: FaChartLine, value: '2.5+', label: 'Years Experience', color: '#f97316' },
-]
 
 export default function Experience() {
   const ref = useRef()
@@ -47,7 +24,7 @@ export default function Experience() {
 
   return (
     <section id="experience" ref={ref} className="sc-section" style={{ overflow: 'hidden' }}>
-      <SectionHeader num="03" title="Experience" />
+      <SectionHeader num="02" title="Experience" />
 
       
       <div style={{
@@ -56,7 +33,7 @@ export default function Experience() {
         gap: '1rem',
         marginBottom: '2.5rem',
       }}>
-        {achievements.map((ach, i) => (
+        {EXPERIENCE_ACHIEVEMENTS.map((ach, i) => (
           <div
             key={ach.label}
             style={{
@@ -328,7 +305,7 @@ export default function Experience() {
               flexWrap: 'wrap',
               gap: '0.75rem',
             }}>
-              {techStack.map((tech, i) => (
+              {EXPERIENCE_TECH.map((tech, i) => (
                 <div
                   key={tech.name}
                   style={{

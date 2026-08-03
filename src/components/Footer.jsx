@@ -1,30 +1,7 @@
 import { useState, useEffect } from 'react'
-import { SiDocker, SiKubernetes, SiTerraform, SiJenkins, SiPrometheus } from 'react-icons/si'
-import { FaAws, FaHeart, FaMapMarkerAlt, FaTerminal } from 'react-icons/fa'
-import { FiGithub, FiLinkedin, FiMail, FiArrowUp } from 'react-icons/fi'
-
-const QUICK_LINKS = [
-  { label: 'Home', href: '#hero' },
-  { label: 'Skills', href: '#skills' },
-  { label: 'Projects', href: '#projects' },
-  { label: 'Experience', href: '#experience' },
-  { label: 'Contact', href: '#contact' },
-]
-
-const SOCIAL_LINKS = [
-  { Icon: FiGithub, href: 'https://github.com/sunnycharkhwal', label: 'GitHub' },
-  { Icon: FiLinkedin, href: 'https://linkedin.com/in/sunnycharkhwal', label: 'LinkedIn' },
-  { Icon: FiMail, href: 'mailto:sunnycharkhwal@gmail.com', label: 'Email' },
-]
-
-const TECH_STACK = [
-  { Icon: SiDocker, color: '#2496ED' },
-  { Icon: SiKubernetes, color: '#326CE5' },
-  { Icon: SiTerraform, color: '#7B42BC' },
-  { Icon: FaAws, color: '#FF9900' },
-  { Icon: SiJenkins, color: '#D24939' },
-  { Icon: SiPrometheus, color: '#E6522C' },
-]
+import { FaHeart, FaMapMarkerAlt, FaTerminal } from 'react-icons/fa'
+import { FiArrowUp } from 'react-icons/fi'
+import { FOOTER_QUICK_LINKS, FOOTER_SOCIAL_LINKS, FOOTER_TECH_STACK } from '../data/index.js'
 
 export default function Footer() {
   const [command, setCommand] = useState('')
@@ -168,7 +145,7 @@ export default function Footer() {
               Quick Links
             </h4>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-              {QUICK_LINKS.map(link => (
+              {FOOTER_QUICK_LINKS.map(link => (
                 <li key={link.label} style={{ marginBottom: 12 }}>
                   <a 
                     href={link.href}
@@ -219,7 +196,7 @@ export default function Footer() {
               gap: 12,
               marginBottom: '1.5rem',
             }}>
-              {SOCIAL_LINKS.map(({ Icon, href, label }) => (
+              {FOOTER_SOCIAL_LINKS.map(({ Icon, href, label }) => (
                 <a
                   key={label}
                   href={href}
@@ -289,7 +266,7 @@ export default function Footer() {
         }}>
           <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
           <div style={{ display: 'flex', gap: 'clamp(10px, 2vw, 16px)' }}>
-            {TECH_STACK.map(({ Icon, color }, i) => (
+            {FOOTER_TECH_STACK.map(({ Icon, color }, i) => (
               <Icon 
                 key={i} 
                 style={{ 

@@ -1,0 +1,10 @@
+// ── Global stylesheet entry point ──
+// Assembled from partials. Order matters:
+//   • _base emits the Google-Fonts @import first (must precede other CSS).
+//   • _responsive is loaded last so its media-query overrides keep winning.
+@use "base";
+@use "animations";
+@use "nav";
+@use "layout";
+@use "components";
+@use "responsive";

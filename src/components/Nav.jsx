@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
+import { useSelector } from 'react-redux'
 import { NAV_LINKS } from '../data/index.js'
 import useScrolled from '../hooks/useScrolled.js'
 import scrollTo from '../utils/scrollTo.js'
 
-export default function Nav({ active }) {
+export default function Nav() {
+  const active = useSelector(state => state.ui.activeSection)
   const scrolled = useScrolled()
   const [open, setOpen] = useState(false)
   const [hoveredLink, setHoveredLink] = useState(null)

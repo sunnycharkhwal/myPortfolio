@@ -30,7 +30,7 @@ export default function SectionHeader({ num, title, subtitle }) {
           borderRadius: 50,
           fontWeight: 600,
         }}>
-          {`0${num}`}
+          {num}
         </span>
         <div style={{
           width: 60,

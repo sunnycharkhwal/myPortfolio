@@ -1,17 +1,8 @@
 import { useState, useEffect } from 'react'
+import Button from '@mui/material/Button'
 import scrollTo from '../utils/scrollTo.js'
-import { 
-  SiDocker, 
-  SiKubernetes, 
-  SiTerraform, 
-  SiGooglecloud,
-  SiGithubactions,
-  SiAnsible,
-  SiPrometheus,
-  SiJenkins
-} from 'react-icons/si'
-import { FaAws } from 'react-icons/fa'
 import { HiLightningBolt } from 'react-icons/hi'
+import { HERO_ROLES, HERO_TECH_STACK, HERO_STATS } from '../data/index.js'
 
 export default function Hero() {
   const [typedRole, setTypedRole] = useState('')
@@ -20,20 +11,7 @@ export default function Hero() {
   const [activeOrbit, setActiveOrbit] = useState(0)
   const [pulseWave, setPulseWave] = useState(0)
   
-  const roles = ['DevOps Engineer', 'Cloud Architect', 'Platform Engineer', 'SRE Specialist']
   const [roleIndex, setRoleIndex] = useState(0)
-  
-
-  const techStack = [
-    { icon: SiDocker, name: 'Docker', color: '#2496ED' },
-    { icon: SiKubernetes, name: 'Kubernetes', color: '#326CE5' },
-    { icon: SiTerraform, name: 'Terraform', color: '#7B42BC' },
-    { icon: FaAws, name: 'AWS', color: '#FF9900' },
-    { icon: SiGooglecloud, name: 'GCP', color: '#4285F4' },
-    { icon: SiGithubactions, name: 'GitHub', color: '#2088FF' },
-    { icon: SiAnsible, name: 'Ansible', color: '#EE0000' },
-    { icon: SiPrometheus, name: 'Prometheus', color: '#E6522C' },
-  ]
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoaded(true), 100)
@@ -43,7 +21,7 @@ export default function Hero() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setActiveOrbit(prev => (prev + 1) % techStack.length)
+      setActiveOrbit(prev => (prev + 1) % HERO_TECH_STACK.length)
     }, 1500)
     return () => clearInterval(interval)
   }, [])
@@ -57,7 +35,7 @@ export default function Hero() {
   }, [])
   
   useEffect(() => {
-    const currentRole = roles[roleIndex]
+    const currentRole = HERO_ROLES[roleIndex]
     let charIndex = 0
     let isDeleting = false
     let timeout
@@ -76,7 +54,7 @@ export default function Hero() {
         charIndex--
         if (charIndex === 0) {
           isDeleting = false
-          setRoleIndex((prev) => (prev + 1) % roles.length)
+          setRoleIndex((prev) => (prev + 1) % HERO_ROLES.length)
           return
         }
         timeout = setTimeout(type, 50)
@@ -268,28 +246,61 @@ export default function Hero() {
           transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
           transitionDelay: '0.7s',
         }}>
-          <button
-            className="sc-btn-p hero-cta-primary"
+          <Button
             onClick={() => scrollTo('projects')}
-            style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 28px', fontSize: 15, fontWeight: 600 }}
+            startIcon={
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                <polyline points="22 4 12 14.01 9 11.01"/>
+              </svg>
+            }
+            sx={{
+              textTransform: 'none',
+              fontFamily: 'var(--sans)',
+              fontSize: 15,
+              fontWeight: 600,
+              color: '#0a0a0f',
+              padding: '14px 28px',
+              borderRadius: '50px',
+              background: 'var(--gradient-1)',
+              boxShadow: '0 0 30px rgba(0, 212, 255, 0.3)',
+              '&:hover': {
+                background: 'var(--gradient-1)',
+                transform: 'translateY(-3px)',
+                boxShadow: '0 10px 40px rgba(0, 212, 255, 0.4)',
+              },
+            }}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-              <polyline points="22 4 12 14.01 9 11.01"/>
-            </svg>
             View Projects
-          </button>
-          <button
-            className="sc-btn-o hero-cta-secondary"
+          </Button>
+          <Button
+            variant="outlined"
             onClick={() => scrollTo('contact')}
-            style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 28px', fontSize: 15, fontWeight: 600 }}
+            startIcon={
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                <path d="M22 6l-10 7L2 6"/>
+              </svg>
+            }
+            sx={{
+              textTransform: 'none',
+              fontFamily: 'var(--sans)',
+              fontSize: 15,
+              fontWeight: 600,
+              color: 'var(--accent)',
+              padding: '14px 28px',
+              borderRadius: '50px',
+              borderColor: 'rgba(0, 212, 255, 0.4)',
+              '&:hover': {
+                borderColor: 'var(--accent)',
+                background: 'rgba(0, 212, 255, 0.1)',
+                transform: 'translateY(-3px)',
+                boxShadow: '0 10px 40px rgba(0, 212, 255, 0.2)',
+              },
+            }}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-              <path d="M22 6l-10 7L2 6"/>
-            </svg>
             Get In Touch
-          </button>
+          </Button>
         </div>
 
         
@@ -302,11 +313,7 @@ export default function Hero() {
           transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
           transitionDelay: '0.8s',
         }}>
-          {[
-            { value: '2.5+', label: 'Years Experience', color: '#00d4ff' },
-            { value: '13+', label: 'Projects Delivered', color: '#a855f7' },
-            { value: '99.9%', label: 'Uptime Achieved', color: '#10b981' },
-          ].map((stat) => (
+          {HERO_STATS.map((stat) => (
             <div key={stat.label} style={{ textAlign: 'left', padding: '12px 0', borderLeft: `3px solid ${stat.color}30`, paddingLeft: 16 }}>
               <div style={{
                 fontFamily: 'var(--mono)',
@@ -395,7 +402,7 @@ export default function Hero() {
         </div>
         
         
-        {techStack.slice(0, 4).map((tech, i) => {
+        {HERO_TECH_STACK.slice(0, 4).map((tech, i) => {
           const angle = (i / 4) * 360 - 45
           const isActive = activeOrbit === i
           const IconComponent = tech.icon
@@ -416,7 +423,7 @@ export default function Hero() {
         })}
         
         
-        {techStack.slice(4).map((tech, i) => {
+        {HERO_TECH_STACK.slice(4).map((tech, i) => {
           const angle = (i / 4) * 360 - 22.5
           const isActive = activeOrbit === i + 4
           const IconComponent = tech.icon
