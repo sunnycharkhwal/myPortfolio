@@ -228,11 +228,11 @@ export default function Hero() {
           transitionDelay: '0.6s',
           maxWidth: 560,
         }}>
-          Crafting <span style={{ color: 'var(--accent)', fontWeight: 600 }}>scalable cloud infrastructure</span> and 
-          streamlining <span style={{ color: 'var(--accent-purple)', fontWeight: 600 }}>CI/CD pipelines</span> on AWS.
-          Expert in <span style={{ color: '#326CE5', fontWeight: 600 }}>Kubernetes</span>,{' '}
-          <span style={{ color: '#7B42BC', fontWeight: 600 }}>Terraform</span>, and{' '}
-          <span style={{ color: '#EF7B4D', fontWeight: 600 }}>GitOps</span> methodologies.
+          Crafting <span style={{ color: 'var(--accent)', fontWeight: 600 }}>scalable cloud infrastructure</span> and
+          automating <span style={{ color: 'var(--accent-purple)', fontWeight: 600 }}>CI/CD pipelines</span> on AWS, backed
+          by <span style={{ color: 'var(--accent-green)', fontWeight: 600 }}>5+ years</span> of engineering experience —
+          including <span style={{ color: '#f97316', fontWeight: 600 }}>2+ years</span> leading production{' '}
+          <span style={{ color: '#61DAFB', fontWeight: 600 }}>React.js</span> teams before transitioning into DevOps.
         </p>
 
         
@@ -275,11 +275,14 @@ export default function Hero() {
           </Button>
           <Button
             variant="outlined"
-            onClick={() => scrollTo('contact')}
+            component="a"
+            href="/Sunny-Charkhwal-Resume.pdf"
+            download="Sunny-Charkhwal-Resume.pdf"
             startIcon={
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-                <path d="M22 6l-10 7L2 6"/>
+                <path d="M12 3v12" />
+                <path d="M7 10l5 5 5-5" />
+                <path d="M4 19h16" />
               </svg>
             }
             sx={{
@@ -299,7 +302,7 @@ export default function Hero() {
               },
             }}
           >
-            Get In Touch
+            Download Resume
           </Button>
         </div>
 
@@ -693,17 +696,19 @@ export default function Hero() {
           width: 80%;
           height: 80%;
           background: radial-gradient(circle, rgba(0, 212, 255, 0.15) 0%, transparent 70%);
-          filter: blur(40px);
+          filter: blur(24px);
           animation: ambientPulse 4s ease-in-out infinite;
+          will-change: transform, opacity;
         }
-        
+
         .ambient-glow-2 {
           position: absolute;
           width: 60%;
           height: 60%;
           background: radial-gradient(circle, rgba(168, 85, 247, 0.15) 0%, transparent 70%);
-          filter: blur(50px);
+          filter: blur(28px);
           animation: ambientPulse 4s ease-in-out infinite reverse;
+          will-change: transform, opacity;
         }
         
         @keyframes ambientPulse {

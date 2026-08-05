@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
-import { NAV_LINKS } from '../data/index.js'
+import { NAV_LINKS, CONTACT_EMAIL } from '../data/index.js'
 import useScrolled from '../hooks/useScrolled.js'
 import scrollTo from '../utils/scrollTo.js'
 
@@ -33,8 +33,8 @@ export default function Nav() {
         background: scrolled 
           ? 'linear-gradient(180deg, rgba(10, 10, 15, 0.95) 0%, rgba(10, 10, 15, 0.85) 100%)' 
           : 'transparent',
-        backdropFilter: scrolled ? 'blur(20px) saturate(180%)' : 'none',
-        WebkitBackdropFilter: scrolled ? 'blur(20px) saturate(180%)' : 'none',
+        backdropFilter: scrolled ? 'blur(8px)' : 'none',
+        WebkitBackdropFilter: scrolled ? 'blur(8px)' : 'none',
         borderBottom: scrolled ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid transparent',
         transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
         boxShadow: scrolled ? '0 8px 32px rgba(0, 0, 0, 0.4)' : 'none',
@@ -89,10 +89,11 @@ export default function Nav() {
                   onClick={() => go(id)}
                   onMouseEnter={() => setHoveredLink(l)}
                   onMouseLeave={() => setHoveredLink(null)}
+                  className={`sc-nav-link${isActive ? ' active' : ''}`}
                   style={{
                     position: 'relative',
-                    background: isActive 
-                      ? 'linear-gradient(135deg, rgba(0, 212, 255, 0.15) 0%, rgba(168, 85, 247, 0.1) 100%)' 
+                    background: isActive
+                      ? 'linear-gradient(135deg, rgba(0, 212, 255, 0.15) 0%, rgba(168, 85, 247, 0.1) 100%)'
                       : 'transparent',
                     border: 'none',
                     borderRadius: 30,
@@ -131,7 +132,7 @@ export default function Nav() {
 
         
         <a 
-          href="mailto:sunny.charkhwal@gmail.com"
+          href={`mailto:${CONTACT_EMAIL}`}
           className="sc-hire"
           style={{
             position: 'relative',
@@ -189,9 +190,9 @@ export default function Nav() {
         </button>
 
         
-        <div style={{ 
+        <div style={{
           fontFamily: 'var(--mono)', fontSize: 28, fontWeight: 700,
-          marginBottom: '2rem',
+          marginBottom: '0.75rem',
         }}>
           <span style={{ color: 'var(--accent)' }}>S</span>
           <span style={{ color: 'var(--accent-purple)' }}>C</span>
@@ -211,9 +212,10 @@ export default function Nav() {
             <button
               key={l}
               onClick={() => go(id)}
+              className={`sc-nav-link-drawer${isActive ? ' active' : ''}`}
               style={{
-                background: isActive 
-                  ? 'linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(168, 85, 247, 0.05) 100%)' 
+                background: isActive
+                  ? 'linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(168, 85, 247, 0.05) 100%)'
                   : 'transparent',
                 border: isActive ? '1px solid rgba(0, 212, 255, 0.2)' : '1px solid transparent',
                 borderRadius: 16,
@@ -261,10 +263,10 @@ export default function Nav() {
 
         
         <a
-          href="mailto:sunny.charkhwal@gmail.com"
-          style={{ 
-            marginTop: '2rem', 
-            fontFamily: 'var(--sans)', 
+          href={`mailto:${CONTACT_EMAIL}`}
+          style={{
+            marginTop: '0.5rem',
+            fontFamily: 'var(--sans)',
             fontSize: 16, 
             fontWeight: 600, 
             padding: '16px 40px', 

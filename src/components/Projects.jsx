@@ -1,14 +1,237 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import Dialog from '@mui/material/Dialog'
 import IconButton from '@mui/material/IconButton'
 import Grow from '@mui/material/Grow'
 import CloseIcon from '@mui/icons-material/Close'
-import { PROJECTS, PROJECT_CATEGORIES, CATEGORY_CLASS } from '../data/index.js'
 import { setProjectFilter, openProject, closeProject } from '../store/uiSlice.js'
+import { listProjects } from '../api/projectsApi.js'
+import { listProjectCategories } from '../api/projectCategoriesApi.js'
+import { resolveIcon } from '../utils/iconRegistry.js'
 import useFadeIn from '../hooks/useFadeIn.js'
+import SectionHeader from './SectionHeader.jsx'
+import DownloadLinkButton from './DownloadLinkButton.jsx'
 
-function ProjectModal({ project, onClose }) {
+const ALL_GROUP = { slug: 'all', label: 'All Projects', iconKey: 'HiViewGrid', color: '#00d4ff' }
+
+// Inline replacement for the old static CATEGORY_CLASS CSS-class map, now that category
+// colors come from the admin-manageable taxonomy — mirrors the same
+// background/color/border ratios the .cat-* classes in _components.scss used.
+function categoryBadgeStyle(color) {
+  const c = color || '#8a8a9a'
+  return { background: `${c}26`, color: c, border: `1px solid ${c}4d` }
+}
+
+function galleryArrowStyle(side) {
+  return {
+    position: 'absolute',
+    top: '50%',
+    [side]: 10,
+    transform: 'translateY(-50%)',
+    width: 36,
+    height: 36,
+    borderRadius: '50%',
+    border: '1px solid rgba(255,255,255,0.15)',
+    background: 'rgba(0,0,0,0.45)',
+    color: '#fff',
+    fontSize: 20,
+    lineHeight: 1,
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backdropFilter: 'blur(4px)',
+    zIndex: 2,
+  }
+}
+
+function lightboxArrowStyle(side) {
+  return {
+    position: 'fixed',
+    top: '50%',
+    [side]: '3vw',
+    transform: 'translateY(-50%)',
+    width: 52,
+    height: 52,
+    borderRadius: '50%',
+    border: '1px solid rgba(255,255,255,0.2)',
+    background: 'rgba(255,255,255,0.08)',
+    color: '#fff',
+    fontSize: 28,
+    lineHeight: 1,
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 2001,
+  }
+}
+
+function ProjectGallery({ images, projectTitle }) {
+  const [activeIndex, setActiveIndex] = useState(0)
+  const [lightboxOpen, setLightboxOpen] = useState(false)
+
+  useEffect(() => {
+    if (!lightboxOpen) return
+    const onKey = (e) => { if (e.key === 'Escape') setLightboxOpen(false) }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [lightboxOpen])
+
+  if (!images || images.length === 0) return null
+
+  const hasMultiple = images.length > 1
+  const goTo = (i, e) => {
+    e?.stopPropagation()
+    setActiveIndex((i + images.length) % images.length)
+  }
+
+  return (
+    <div style={{ marginBottom: '0.5rem' }}>
+      <div style={{
+        position: 'relative',
+        borderRadius: 14,
+        overflow: 'hidden',
+        border: '1px solid var(--border)',
+        background: '#0a0a0f',
+      }}>
+        <div style={{
+          display: 'flex',
+          width: `${images.length * 100}%`,
+          transform: `translateX(-${(activeIndex * 100) / images.length}%)`,
+          transition: 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+        }}>
+          {images.map((src, i) => (
+            <div
+              key={src + i}
+              onClick={() => setLightboxOpen(true)}
+              style={{
+                width: `${100 / images.length}%`,
+                aspectRatio: '16 / 9',
+                flexShrink: 0,
+                cursor: 'zoom-in',
+              }}
+            >
+              <img
+                src={src}
+                alt={`${projectTitle} — screenshot ${i + 1}`}
+                loading="lazy"
+                draggable={false}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              />
+            </div>
+          ))}
+        </div>
+
+        {hasMultiple && (
+          <>
+            <button aria-label="Previous image" onClick={(e) => goTo(activeIndex - 1, e)} style={galleryArrowStyle('left')}>‹</button>
+            <button aria-label="Next image" onClick={(e) => goTo(activeIndex + 1, e)} style={galleryArrowStyle('right')}>›</button>
+            <div style={{
+              position: 'absolute', bottom: 12, left: '50%', transform: 'translateX(-50%)',
+              display: 'flex', gap: 6,
+            }}>
+              {images.map((_, i) => (
+                <button
+                  key={i}
+                  aria-label={`Go to image ${i + 1}`}
+                  onClick={(e) => goTo(i, e)}
+                  style={{
+                    width: i === activeIndex ? 18 : 6,
+                    height: 6,
+                    borderRadius: 4,
+                    border: 'none',
+                    padding: 0,
+                    cursor: 'pointer',
+                    background: i === activeIndex ? 'var(--accent)' : 'rgba(255,255,255,0.4)',
+                    boxShadow: i === activeIndex ? '0 0 8px var(--accent)' : 'none',
+                    transition: 'all 0.3s ease',
+                  }}
+                />
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+
+      {lightboxOpen && createPortal(
+        <div
+          onClick={() => setLightboxOpen(false)}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 2000,
+            background: 'rgba(5, 5, 10, 0.92)',
+            backdropFilter: 'blur(6px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '4vh 4vw',
+            cursor: 'zoom-out',
+            animation: 'fadeIn 0.2s ease',
+          }}
+        >
+          <button
+            aria-label="Close"
+            onClick={(e) => { e.stopPropagation(); setLightboxOpen(false) }}
+            style={{
+              position: 'absolute', top: 24, right: 24,
+              width: 44, height: 44, borderRadius: '50%',
+              background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)',
+              color: '#fff', fontSize: 22, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}
+          >
+            ✕
+          </button>
+
+          <img
+            src={images[activeIndex]}
+            alt={`${projectTitle} — screenshot ${activeIndex + 1}`}
+            onClick={(e) => { e.stopPropagation(); setLightboxOpen(false) }}
+            draggable={false}
+            style={{
+              maxWidth: '92vw',
+              maxHeight: '86vh',
+              width: 'auto',
+              height: 'auto',
+              objectFit: 'contain',
+              borderRadius: 12,
+              boxShadow: '0 30px 80px rgba(0,0,0,0.6)',
+              cursor: 'zoom-out',
+              animation: 'scaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+            }}
+          />
+
+          {hasMultiple && (
+            <>
+              <button
+                aria-label="Previous image"
+                onClick={(e) => { e.stopPropagation(); goTo(activeIndex - 1) }}
+                style={lightboxArrowStyle('left')}
+              >‹</button>
+              <button
+                aria-label="Next image"
+                onClick={(e) => { e.stopPropagation(); goTo(activeIndex + 1) }}
+                style={lightboxArrowStyle('right')}
+              >›</button>
+            </>
+          )}
+        </div>,
+        document.body
+      )}
+    </div>
+  )
+}
+
+// Splits step copy on its <strong>…</strong> markers and returns plain JSX
+// (strings + <strong> elements) instead of injecting raw HTML — the data only
+// ever uses that one tag, so a full HTML parser/sanitizer would be overkill.
+function renderStepText(text) {
+  const parts = String(text).split(/<strong>(.*?)<\/strong>/g)
+  return parts.map((part, i) =>
+    i % 2 === 1 ? <strong key={i} style={{ color: 'var(--text)' }}>{part}</strong> : part
+  )
+}
+
+function ProjectModal({ project, index, categories, onClose }) {
   // MUI Dialog handles the backdrop, scroll-lock, focus trap, Esc-to-close and
   // aria-modal semantics for us. We keep the bespoke visual design via slotProps.
   return (
@@ -45,7 +268,9 @@ function ProjectModal({ project, onClose }) {
         },
       }}
     >
-      {project && (
+      {project && (() => {
+        const categoryDoc = categories?.find((c) => c.slug === project.category)
+        return (
         <>
           {/* top gradient hairline */}
           <div style={{
@@ -94,15 +319,15 @@ function ProjectModal({ project, onClose }) {
                 borderRadius: 8,
                 border: '1px solid rgba(0, 212, 255, 0.2)',
               }}>
-                #{String(project.id).padStart(2, '0')}
+                #{String(index + 1).padStart(2, '0')}
               </span>
               <span
-                className={CATEGORY_CLASS[project.category]}
                 style={{
                   fontSize: '0.8rem',
                   padding: '5px 12px',
                   borderRadius: 8,
                   fontWeight: 600,
+                  ...categoryBadgeStyle(categoryDoc?.color),
                 }}
               >
                 {project.catLabel}
@@ -125,154 +350,242 @@ function ProjectModal({ project, onClose }) {
             </p>
           </div>
 
+          <div style={{ padding: '0 2.5rem 1.75rem' }}>
+            <ProjectGallery images={project.images} projectTitle={project.title} />
+          </div>
+
           <hr style={{
             border: 'none',
             borderTop: '1px solid var(--border)',
             margin: '0 2.5rem'
           }} />
 
-          {/* body */}
+          {/* body — every section below is conditional: an admin-left-empty field
+              (no objective typed, no steps added, no tech/AWS entries) renders neither
+              its heading nor its content, rather than showing an empty-looking section. */}
           <div style={{ padding: '1.75rem 2.5rem 2.5rem' }}>
-            <div style={{
-              fontSize: '0.8rem',
-              fontWeight: 700,
-              textTransform: 'uppercase',
-              letterSpacing: '0.08em',
-              background: 'var(--gradient-1)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-              marginBottom: '0.75rem',
-            }}>
-              Objective
-            </div>
-            <div style={{
-              background: 'rgba(0, 212, 255, 0.03)',
-              borderLeft: '3px solid var(--accent)',
-              borderRadius: '0 10px 10px 0',
-              padding: '1rem 1.25rem',
-              fontSize: '0.98rem',
-              color: 'var(--text-secondary)',
-              marginBottom: '2rem',
-              lineHeight: 1.6,
-            }}>
-              {project.objective}
-            </div>
+            {project.objective && project.objective.trim() && (
+              <>
+                <div style={{
+                  fontSize: '0.8rem',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.08em',
+                  background: 'var(--gradient-1)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                  marginBottom: '0.75rem',
+                }}>
+                  Objective
+                </div>
+                <div style={{
+                  background: 'rgba(0, 212, 255, 0.03)',
+                  borderLeft: '3px solid var(--accent)',
+                  borderRadius: '0 10px 10px 0',
+                  padding: '1rem 1.25rem',
+                  fontSize: '0.98rem',
+                  color: 'var(--text-secondary)',
+                  marginBottom: '2rem',
+                  lineHeight: 1.6,
+                }}>
+                  {project.objective}
+                </div>
+              </>
+            )}
 
-            <div style={{
-              fontSize: '0.8rem',
-              fontWeight: 700,
-              textTransform: 'uppercase',
-              letterSpacing: '0.08em',
-              background: 'var(--gradient-1)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-              marginBottom: '0.75rem',
-            }}>
-              Architecture & Steps
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: '2rem' }}>
-              {project.steps.map((step, i) => (
-                <div key={i} style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+            {project.steps && project.steps.length > 0 && (
+              <>
+                <div style={{
+                  fontSize: '0.8rem',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.08em',
+                  background: 'var(--gradient-1)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                  marginBottom: '0.75rem',
+                }}>
+                  Architecture & Steps
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: '2rem' }}>
+                  {project.steps.map((step, i) => (
+                    <div key={i} style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+                      <div style={{
+                        minWidth: 32,
+                        height: 32,
+                        background: 'rgba(0, 212, 255, 0.1)',
+                        border: '1px solid rgba(0, 212, 255, 0.2)',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '0.8rem',
+                        fontWeight: 700,
+                        color: 'var(--accent)',
+                        flexShrink: 0,
+                      }}>
+                        {i + 1}
+                      </div>
+                      <div style={{
+                        color: 'var(--text-secondary)',
+                        fontSize: '0.95rem',
+                        lineHeight: 1.65,
+                        paddingTop: 4,
+                      }}>
+                        <strong style={{ color: 'var(--text)' }}>{step.title}:</strong> {renderStepText(step.text)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {(() => {
+              const isFrontend = project.group === 'frontend'
+              const items = isFrontend ? project.techStack : project.aws
+              if (!items || items.length === 0) return null
+              const heading = isFrontend ? 'Tech Stack' : 'AWS Services Used'
+              const accent = isFrontend ? 'var(--accent)' : '#FF9900'
+              const gradient = isFrontend ? 'var(--gradient-1)' : 'linear-gradient(135deg, #FF9900 0%, #FFB84D 100%)'
+              return (
+                <>
                   <div style={{
-                    minWidth: 32,
-                    height: 32,
-                    background: 'rgba(0, 212, 255, 0.1)',
-                    border: '1px solid rgba(0, 212, 255, 0.2)',
-                    borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
                     fontSize: '0.8rem',
                     fontWeight: 700,
-                    color: 'var(--accent)',
-                    flexShrink: 0,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                    background: gradient,
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                    marginBottom: '0.75rem',
                   }}>
-                    {i + 1}
+                    {heading}
                   </div>
-                  <div style={{
-                    color: 'var(--text-secondary)',
-                    fontSize: '0.95rem',
-                    lineHeight: 1.65,
-                    paddingTop: 4,
-                  }} dangerouslySetInnerHTML={{ __html: `<strong style="color: var(--text)">${step.title}:</strong> ${step.text}` }} />
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: '2rem' }}>
+                    {items.map((service, i) => (
+                      <span key={i} style={{
+                        background: isFrontend ? 'rgba(0, 212, 255, 0.1)' : 'rgba(255, 153, 0, 0.1)',
+                        border: isFrontend ? '1px solid rgba(0, 212, 255, 0.25)' : '1px solid rgba(255, 153, 0, 0.25)',
+                        borderRadius: 10,
+                        fontSize: '0.85rem',
+                        padding: '6px 14px',
+                        color: accent,
+                        fontWeight: 500,
+                      }}>
+                        {service}
+                      </span>
+                    ))}
+                  </div>
+                </>
+              )
+            })()}
+
+            {project.outcomes && project.outcomes.length > 0 && (
+              <>
+                <div style={{
+                  fontSize: '0.8rem',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.08em',
+                  background: 'linear-gradient(135deg, var(--accent-green) 0%, #34d399 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                  marginBottom: '0.75rem',
+                }}>
+                  Key Outcomes
                 </div>
-              ))}
-            </div>
+                <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10, paddingLeft: 0 }}>
+                  {project.outcomes.map((outcome, i) => (
+                    <li key={i} style={{
+                      fontSize: '0.95rem',
+                      color: 'var(--text-secondary)',
+                      paddingLeft: '1.75rem',
+                      position: 'relative',
+                      lineHeight: 1.65,
+                    }}>
+                      <span style={{
+                        position: 'absolute',
+                        left: 0,
+                        color: 'var(--accent-green)',
+                        fontWeight: 700,
+                        fontSize: '1.2rem',
+                        textShadow: '0 0 10px var(--accent-green)',
+                      }}>✓</span>
+                      {outcome}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
 
-            <div style={{
-              fontSize: '0.8rem',
-              fontWeight: 700,
-              textTransform: 'uppercase',
-              letterSpacing: '0.08em',
-              background: 'linear-gradient(135deg, #FF9900 0%, #FFB84D 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-              marginBottom: '0.75rem',
-            }}>
-              AWS Services Used
-            </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: '2rem' }}>
-              {project.aws.map((service, i) => (
-                <span key={i} style={{
-                  background: 'rgba(255, 153, 0, 0.1)',
-                  border: '1px solid rgba(255, 153, 0, 0.25)',
-                  borderRadius: 10,
-                  fontSize: '0.85rem',
-                  padding: '6px 14px',
-                  color: '#FF9900',
-                  fontWeight: 500,
-                }}>
-                  {service}
-                </span>
-              ))}
-            </div>
-
-            <div style={{
-              fontSize: '0.8rem',
-              fontWeight: 700,
-              textTransform: 'uppercase',
-              letterSpacing: '0.08em',
-              background: 'linear-gradient(135deg, var(--accent-green) 0%, #34d399 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-              marginBottom: '0.75rem',
-            }}>
-              Key Outcomes
-            </div>
-            <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10, paddingLeft: 0 }}>
-              {project.outcomes.map((outcome, i) => (
-                <li key={i} style={{
-                  fontSize: '0.95rem',
-                  color: 'var(--text-secondary)',
-                  paddingLeft: '1.75rem',
-                  position: 'relative',
-                  lineHeight: 1.65,
-                }}>
-                  <span style={{
-                    position: 'absolute',
-                    left: 0,
-                    color: 'var(--accent-green)',
-                    fontWeight: 700,
-                    fontSize: '1.2rem',
-                    textShadow: '0 0 10px var(--accent-green)',
-                  }}>✓</span>
-                  {outcome}
-                </li>
-              ))}
-            </ul>
+            {/* This row (and everything in it) only renders when the admin actually
+                entered something — a link or at least one custom download. The
+                auto-generated "Download Case Study" PDF used to always render here
+                regardless of what was entered; that was the reported bug (a button
+                appearing "on its own by default") and has been removed — see
+                DownloadCaseStudyButton.jsx, still used as an explicit preview tool in
+                the dashboard, just no longer auto-rendered on the public site. */}
+            {((project.link && project.linkEnabled) || (project.downloads && project.downloads.length > 0)) && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginTop: '2rem' }}>
+                {project.link && project.linkEnabled && (
+                  <a
+                    href={project.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 10,
+                      maxWidth: '100%',
+                      padding: '12px 20px',
+                      background: 'rgba(52, 211, 153, 0.08)',
+                      border: '1px solid rgba(52, 211, 153, 0.25)',
+                      borderRadius: 12,
+                      color: 'var(--accent-green)',
+                      fontSize: '0.85rem',
+                      fontWeight: 600,
+                      fontFamily: 'var(--mono)',
+                      cursor: 'pointer',
+                      textDecoration: 'none',
+                      transition: 'all 0.25s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'rgba(52, 211, 153, 0.15)'
+                      e.currentTarget.style.borderColor = 'var(--accent-green)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'rgba(52, 211, 153, 0.08)'
+                      e.currentTarget.style.borderColor = 'rgba(52, 211, 153, 0.25)'
+                    }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" style={{ flexShrink: 0 }}>
+                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                      <path d="M15 3h6v6" />
+                      <path d="M10 14 21 3" />
+                    </svg>
+                    Visit Project
+                  </a>
+                )}
+                {(project.downloads || []).map((d, i) => (
+                  <DownloadLinkButton key={i} label={d.label} url={d.url} />
+                ))}
+              </div>
+            )}
           </div>
         </>
-      )}
+        )
+      })()}
     </Dialog>
   )
 }
 
-function ProjectCard({ project, onOpenModal }) {
+function ProjectCard({ project, index, categories, onOpenModal }) {
   const [isHovered, setIsHovered] = useState(false)
+  const categoryDoc = categories?.find((c) => c.slug === project.category)
 
   return (
     <div
@@ -319,15 +632,15 @@ function ProjectCard({ project, onOpenModal }) {
             borderRadius: 6,
             border: '1px solid rgba(0, 212, 255, 0.2)',
           }}>
-            #{String(project.id).padStart(2, '0')}
+            #{String(index + 1).padStart(2, '0')}
           </span>
           <span
-            className={CATEGORY_CLASS[project.category]}
             style={{
               fontSize: '0.75rem',
               padding: '4px 10px',
               borderRadius: 6,
               fontWeight: 600,
+              ...categoryBadgeStyle(categoryDoc?.color),
             }}
           >
             {project.catLabel}
@@ -400,9 +713,46 @@ export default function Projects() {
   const selectedProjectId = useSelector(state => state.ui.selectedProjectId)
   useFadeIn(ref)
 
-  const selectedProject = selectedProjectId != null
-    ? PROJECTS.find(p => p.id === selectedProjectId)
-    : null
+  // Public content fetched live from the database — no Redux for the data itself
+  // (only the filter/selection UI state stays in uiSlice, unchanged), matching
+  // Experience.jsx's precedent: a single self-contained public section, fails open to
+  // an empty array on error rather than crashing the page. Categories are fetched
+  // enabled-only (the public endpoint never returns disabled ones), and any project
+  // whose group or category isn't currently enabled is filtered out entirely below —
+  // this is the whole enforcement of "disabling hides it everywhere".
+  const [rawProjects, setRawProjects] = useState([])
+  const [categories, setCategories] = useState([])
+  const [loaded, setLoaded] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    Promise.all([listProjects(), listProjectCategories()])
+      .then(([projectsData, categoriesData]) => {
+        if (!cancelled) {
+          setRawProjects(projectsData)
+          setCategories(categoriesData)
+          setLoaded(true)
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setLoaded(true)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const groups = [ALL_GROUP, ...categories.filter((c) => !c.parent).sort((a, b) => a.order - b.order)]
+  const subcategories = categories.filter((c) => c.parent)
+
+  const enabledGroupSlugs = new Set(groups.map((g) => g.slug))
+  const enabledCategorySlugs = new Set(subcategories.map((c) => c.slug))
+  // A project with a link that's been explicitly toggled off is hidden entirely, same
+  // as a disabled taxonomy category — `linkEnabled !== false` keeps every project
+  // without a link at all (the vast majority) fully visible by default.
+  const projects = rawProjects.filter(
+    (p) => enabledGroupSlugs.has(p.group) && enabledCategorySlugs.has(p.category) && p.linkEnabled !== false
+  )
 
   const handleFilterChange = (newFilter) => {
     dispatch(setProjectFilter(newFilter))
@@ -415,14 +765,45 @@ export default function Projects() {
     })
   }
 
+  const isGroupFilter = groups.some(g => g.slug === filter && g.slug !== 'all')
+  const activeGroupId = filter === 'all'
+    ? 'all'
+    : isGroupFilter
+      ? filter
+      : (() => {
+          const cat = subcategories.find(c => c.slug === filter)
+          const parentGroup = cat ? groups.find(g => g._id === cat.parent) : null
+          return parentGroup ? parentGroup.slug : 'all'
+        })()
+
+  const visibleCategories = activeGroupId === 'all'
+    ? []
+    : subcategories.filter(c => {
+        const parentGroup = groups.find(g => g._id === c.parent)
+        return parentGroup && parentGroup.slug === activeGroupId
+      })
+
   const filteredProjects = filter === 'all'
-    ? PROJECTS
-    : PROJECTS.filter(p => p.category === filter)
+    ? projects
+    : isGroupFilter
+      ? projects.filter(p => p.group === filter)
+      : projects.filter(p => p.category === filter)
+
+  // Index within the currently-filtered/visible list, not a stored id — Mongo _ids
+  // aren't small sequential numbers, so the #01/#02… badge is rebased on display
+  // position, kept consistent between the grid and the modal by both reading from
+  // the same filteredProjects array.
+  const selectedIndex = selectedProjectId != null
+    ? filteredProjects.findIndex(p => p._id === selectedProjectId)
+    : -1
+  const selectedProject = selectedIndex !== -1 ? filteredProjects[selectedIndex] : null
 
   return (
     <>
       <ProjectModal
         project={selectedProject}
+        index={selectedIndex}
+        categories={subcategories}
         onClose={() => dispatch(closeProject())}
       />
 
@@ -433,190 +814,8 @@ export default function Projects() {
         position: 'relative',
       }}>
 
-        <div style={{
-          background: 'linear-gradient(135deg, var(--bg2) 0%, var(--bg) 100%)',
-          borderBottom: '1px solid var(--border)',
-          padding: '3rem 2rem',
-          textAlign: 'center',
-          position: 'relative',
-          overflow: 'hidden',
-        }}>
-
-          <div style={{
-            position: 'absolute',
-            top: '-50%',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: 600,
-            height: 300,
-            background: 'radial-gradient(ellipse, rgba(0, 212, 255, 0.1) 0%, transparent 70%)',
-            pointerEvents: 'none',
-          }} />
-
-          <h1 style={{
-            fontSize: 'clamp(1.8rem, 4vw, 2.5rem)',
-            fontWeight: 700,
-            color: 'var(--text)',
-            marginBottom: '0.75rem',
-            position: 'relative',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexWrap: 'wrap',
-            gap: '0.5rem',
-          }}>
-
-            <span style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 56,
-              height: 56,
-              background: 'linear-gradient(135deg, rgba(0,212,255,0.15) 0%, rgba(168,85,247,0.15) 100%)',
-              border: '2px solid rgba(0,212,255,0.4)',
-              borderRadius: 12,
-              fontFamily: 'var(--mono)',
-              fontSize: '1.5rem',
-              fontWeight: 800,
-              color: 'var(--accent)',
-              boxShadow: '0 0 30px rgba(0,212,255,0.2)',
-              animation: 'numberPulse 3s ease-in-out infinite',
-            }}>
-              12
-            </span>
-
-
-            <span style={{
-              background: 'linear-gradient(90deg, var(--text) 0%, var(--text-secondary) 50%, var(--text) 100%)',
-              backgroundSize: '200% 100%',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-              animation: 'titleShimmer 4s ease-in-out infinite',
-            }}>
-              Real-World DevOps
-            </span>
-
-
-            <span style={{
-              position: 'relative',
-              color: 'var(--text)',
-            }}>
-              Projects
-              <span style={{
-                position: 'absolute',
-                bottom: -4,
-                left: 0,
-                width: '100%',
-                height: 3,
-                background: 'var(--gradient-1)',
-                borderRadius: 2,
-                animation: 'underlineGrow 2s ease-out forwards',
-              }} />
-            </span>
-
-
-            <span style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              background: 'linear-gradient(135deg, #FF9900 0%, #FFB84D 100%)',
-              color: '#000',
-              fontWeight: 700,
-              fontSize: '0.75rem',
-              padding: '6px 14px',
-              borderRadius: 8,
-              boxShadow: '0 4px 20px rgba(255, 153, 0, 0.35)',
-              animation: 'floatBadge 3s ease-in-out infinite',
-              letterSpacing: '0.05em',
-            }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" fill="none"/>
-              </svg>
-              AWS
-            </span>
-          </h1>
-
-
-          <p style={{
-            color: 'var(--text-secondary)',
-            fontSize: '1.05rem',
-            position: 'relative',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 8,
-            flexWrap: 'wrap',
-          }}>
-            <span style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '4px 12px',
-              background: 'rgba(16, 185, 129, 0.1)',
-              border: '1px solid rgba(16, 185, 129, 0.3)',
-              borderRadius: 20,
-              fontSize: '0.85rem',
-              color: '#10b981',
-              fontFamily: 'var(--mono)',
-            }}>
-              <span style={{
-                width: 6,
-                height: 6,
-                borderRadius: '50%',
-                background: '#10b981',
-                animation: 'statusBlink 2s ease-in-out infinite',
-              }} />
-              Production-grade
-            </span>
-            <span style={{ color: 'var(--muted)' }}>•</span>
-            <span>Click any card to explore architecture</span>
-            <span style={{
-              display: 'inline-block',
-              animation: 'bounceArrow 1.5s ease-in-out infinite',
-            }}>
-              👇
-            </span>
-          </p>
-
-
-          <style>{`
-            @keyframes numberPulse {
-              0%, 100% {
-                box-shadow: 0 0 30px rgba(0,212,255,0.2);
-                transform: scale(1);
-              }
-              50% {
-                box-shadow: 0 0 40px rgba(0,212,255,0.4);
-                transform: scale(1.05);
-              }
-            }
-
-            @keyframes titleShimmer {
-              0%, 100% { background-position: 0% 50%; }
-              50% { background-position: 100% 50%; }
-            }
-
-            @keyframes underlineGrow {
-              0% { transform: scaleX(0); transform-origin: left; }
-              100% { transform: scaleX(1); transform-origin: left; }
-            }
-
-            @keyframes floatBadge {
-              0%, 100% { transform: translateY(0); }
-              50% { transform: translateY(-4px); }
-            }
-
-            @keyframes statusBlink {
-              0%, 100% { opacity: 1; }
-              50% { opacity: 0.5; }
-            }
-
-            @keyframes bounceArrow {
-              0%, 100% { transform: translateY(0); }
-              50% { transform: translateY(4px); }
-            }
-          `}</style>
+        <div style={{ padding: 'clamp(2.5rem, 6vw, 4rem) clamp(1rem, 4vw, 2rem) 0' }}>
+          <SectionHeader num="02" title="Project" />
         </div>
 
 
@@ -624,9 +823,9 @@ export default function Projects() {
           className="hide-scrollbar"
           style={{
             padding: '1rem 0',
-            background: 'linear-gradient(180deg, rgba(18, 18, 26, 0.8) 0%, rgba(18, 18, 26, 0.6) 100%)',
-            backdropFilter: 'blur(12px)',
-            WebkitBackdropFilter: 'blur(12px)',
+            background: 'linear-gradient(180deg, rgba(18, 18, 26, 0.9) 0%, rgba(18, 18, 26, 0.8) 100%)',
+            backdropFilter: 'blur(6px)',
+            WebkitBackdropFilter: 'blur(6px)',
             borderBottom: '1px solid var(--border)',
             position: 'sticky',
             top: 72,
@@ -636,32 +835,34 @@ export default function Projects() {
             WebkitOverflowScrolling: 'touch',
           }}>
 
-          <div style={{
+          <div className="project-group-tabs" style={{
             display: 'flex',
+            justifyContent: 'center',
             gap: 8,
             padding: '0 1.5rem',
+            width: '100%',
             minWidth: 'max-content',
           }}>
-            {PROJECT_CATEGORIES.map(cat => {
-              const Icon = cat.icon
-              const isActive = filter === cat.id
-              const count = cat.id === 'all'
-                ? PROJECTS.length
-                : PROJECTS.filter(p => p.category === cat.id).length
+            {groups.map(group => {
+              const Icon = resolveIcon(group.iconKey)
+              const isActive = activeGroupId === group.slug
+              const count = group.slug === 'all'
+                ? projects.length
+                : projects.filter(p => p.group === group.slug).length
 
               return (
                 <button
-                  key={cat.id}
-                  onClick={() => handleFilterChange(cat.id)}
+                  key={group.slug}
+                  onClick={() => handleFilterChange(group.slug)}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: 6,
                     background: isActive
-                      ? `linear-gradient(135deg, ${cat.color}20 0%, ${cat.color}10 100%)`
+                      ? `linear-gradient(135deg, ${group.color}20 0%, ${group.color}10 100%)`
                       : 'rgba(255, 255, 255, 0.02)',
-                    border: `1px solid ${isActive ? cat.color + '60' : 'rgba(255,255,255,0.06)'}`,
-                    color: isActive ? cat.color : 'var(--text-secondary)',
+                    border: `1px solid ${isActive ? group.color + '60' : 'rgba(255,255,255,0.06)'}`,
+                    color: isActive ? group.color : 'var(--text-secondary)',
                     padding: '8px 14px',
                     borderRadius: 10,
                     cursor: 'pointer',
@@ -670,7 +871,7 @@ export default function Projects() {
                     transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
                     fontFamily: 'var(--sans)',
                     boxShadow: isActive
-                      ? `0 4px 20px ${cat.color}25, inset 0 1px 0 ${cat.color}20`
+                      ? `0 4px 20px ${group.color}25, inset 0 1px 0 ${group.color}20`
                       : 'none',
                     position: 'relative',
                     overflow: 'hidden',
@@ -679,9 +880,9 @@ export default function Projects() {
                   }}
                   onMouseEnter={(e) => {
                     if (!isActive) {
-                      e.currentTarget.style.borderColor = cat.color + '40'
-                      e.currentTarget.style.color = cat.color
-                      e.currentTarget.style.background = `${cat.color}10`
+                      e.currentTarget.style.borderColor = group.color + '40'
+                      e.currentTarget.style.color = group.color
+                      e.currentTarget.style.background = `${group.color}10`
                       e.currentTarget.style.transform = 'translateY(-2px)'
                     }
                   }}
@@ -698,15 +899,15 @@ export default function Projects() {
                     fontSize: 14,
                     opacity: isActive ? 1 : 0.7,
                   }} />
-                  <span>{cat.label}</span>
+                  <span>{group.label}</span>
                   {count > 0 && (
                     <span style={{
                       fontSize: '0.65rem',
                       fontWeight: 600,
                       padding: '2px 6px',
                       borderRadius: 6,
-                      background: isActive ? cat.color + '30' : 'rgba(255,255,255,0.08)',
-                      color: isActive ? cat.color : 'var(--muted)',
+                      background: isActive ? group.color + '30' : 'rgba(255,255,255,0.08)',
+                      color: isActive ? group.color : 'var(--muted)',
                       fontFamily: 'var(--mono)',
                     }}>
                       {count}
@@ -716,6 +917,77 @@ export default function Projects() {
               )
             })}
           </div>
+
+          {visibleCategories.length > 0 && (
+            <div className="project-category-chips" style={{
+              display: 'flex',
+              justifyContent: 'center',
+              gap: 8,
+              padding: '0.65rem 1.5rem 0',
+              width: '100%',
+              minWidth: 'max-content',
+            }}>
+              {visibleCategories.map(cat => {
+                const Icon = resolveIcon(cat.iconKey)
+                const isActive = filter === cat.slug
+                const count = projects.filter(p => p.category === cat.slug).length
+
+                return (
+                  <button
+                    key={cat.slug}
+                    onClick={() => handleFilterChange(cat.slug)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      background: isActive
+                        ? `linear-gradient(135deg, ${cat.color}20 0%, ${cat.color}10 100%)`
+                        : 'rgba(255, 255, 255, 0.02)',
+                      border: `1px solid ${isActive ? cat.color + '60' : 'rgba(255,255,255,0.06)'}`,
+                      color: isActive ? cat.color : 'var(--text-secondary)',
+                      padding: '6px 12px',
+                      borderRadius: 8,
+                      cursor: 'pointer',
+                      fontSize: '0.75rem',
+                      fontWeight: isActive ? 600 : 500,
+                      transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                      fontFamily: 'var(--sans)',
+                      whiteSpace: 'nowrap',
+                      flexShrink: 0,
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.borderColor = cat.color + '40'
+                        e.currentTarget.style.color = cat.color
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'
+                        e.currentTarget.style.color = 'var(--text-secondary)'
+                      }
+                    }}
+                  >
+                    <Icon style={{ fontSize: 12, opacity: isActive ? 1 : 0.7 }} />
+                    <span>{cat.label}</span>
+                    {count > 0 && (
+                      <span style={{
+                        fontSize: '0.62rem',
+                        fontWeight: 600,
+                        padding: '1px 5px',
+                        borderRadius: 5,
+                        background: isActive ? cat.color + '30' : 'rgba(255,255,255,0.08)',
+                        color: isActive ? cat.color : 'var(--muted)',
+                        fontFamily: 'var(--mono)',
+                      }}>
+                        {count}
+                      </span>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+          )}
         </div>
 
 
@@ -727,13 +999,19 @@ export default function Projects() {
           maxWidth: 1400,
           margin: '0 auto',
         }}>
-          {filteredProjects.map((project) => (
-            <ProjectCard
-              key={project.id}
-              project={project}
-              onOpenModal={(p) => dispatch(openProject(p.id))}
-            />
-          ))}
+          {!loaded ? (
+            <p style={{ color: 'var(--text-secondary)', gridColumn: '1 / -1', textAlign: 'center' }}>Loading projects…</p>
+          ) : (
+            filteredProjects.map((project, index) => (
+              <ProjectCard
+                key={project._id}
+                project={project}
+                index={index}
+                categories={subcategories}
+                onOpenModal={(p) => dispatch(openProject(p._id))}
+              />
+            ))
+          )}
         </div>
 
       </section>

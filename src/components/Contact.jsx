@@ -1,7 +1,11 @@
 import { useRef, useEffect, useState } from 'react'
 import SectionHeader from './SectionHeader.jsx'
 import useFadeIn from '../hooks/useFadeIn.js'
-import { CONTACT_SERVICES, CONTACT_FLOATING_ICONS } from '../data/index.js'
+import {
+  CONTACT_SERVICES, CONTACT_FLOATING_ICONS,
+  CONTACT_EMAIL, CONTACT_PHONE, CONTACT_PHONE_DISPLAY,
+  CONTACT_LINKEDIN_URL, CONTACT_LINKEDIN_HANDLE,
+} from '../data/index.js'
 
 export default function Contact() {
   const ref = useRef()
@@ -23,7 +27,7 @@ export default function Contact() {
 
   return (
     <section id="contact" ref={ref} className="sc-section" style={{ overflow: 'hidden' }}>
-      <SectionHeader num="03" title="Get In Touch" />
+      <SectionHeader num="04" title="Get In Touch" />
 
       
       <div style={{
@@ -141,9 +145,11 @@ export default function Contact() {
             transform: isVisible ? 'translateY(0)' : 'translateY(30px)',
             transition: 'all 0.7s ease 0.4s',
           }}>
-            Need a <span style={{ color: 'var(--accent-purple)' }}>DevOps Engineer</span> to automate your deployments, 
-            scale your infrastructure, or set up monitoring? I'm here to help transform your 
-            <span style={{ color: 'var(--accent)' }}> development workflow</span>.
+            Need a <span style={{ color: 'var(--accent-purple)' }}>DevOps Engineer</span> to automate your deployments,
+            scale your infrastructure, or set up monitoring — or a{' '}
+            <span style={{ color: '#61DAFB' }}>former Lead Frontend Developer</span> who's shipped the production
+            React apps that run on that infrastructure? I'm here to help transform your
+            <span style={{ color: 'var(--accent)' }}> development workflow</span>, end to end.
           </p>
 
           
@@ -157,7 +163,7 @@ export default function Contact() {
             transition: 'all 0.7s ease 0.5s',
           }}>
             <a
-              href="mailto:sunny.charkhwal@gmail.com"
+              href={`mailto:${CONTACT_EMAIL}`}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -188,7 +194,7 @@ export default function Contact() {
               Start a Conversation
             </a>
             <a
-              href="https://www.linkedin.com/in/sunnycharkhwal"
+              href={CONTACT_LINKEDIN_URL}
               target="_blank"
               rel="noopener noreferrer"
               style={{
@@ -326,7 +332,7 @@ export default function Contact() {
       }}>
         
         <a
-          href="mailto:sunny.charkhwal@gmail.com"
+          href={`mailto:${CONTACT_EMAIL}`}
           style={{
             position: 'relative',
             padding: '2rem',
@@ -402,7 +408,7 @@ export default function Contact() {
               Email
             </div>
             <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>
-              sunny.charkhwal@gmail.com
+              {CONTACT_EMAIL}
             </div>
             <div style={{ fontSize: 12, color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: 6 }}>
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#34A853', animation: 'pulse 2s infinite' }} />
@@ -413,7 +419,7 @@ export default function Contact() {
 
         
         <a
-          href="https://www.linkedin.com/in/sunnycharkhwal"
+          href={CONTACT_LINKEDIN_URL}
           target="_blank"
           rel="noopener noreferrer"
           style={{
@@ -501,7 +507,7 @@ export default function Contact() {
               LinkedIn
             </div>
             <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>
-              /in/sunnycharkhwal
+              {CONTACT_LINKEDIN_HANDLE}
             </div>
             <div style={{ fontSize: 12, color: 'var(--muted)' }}>
               500+ Connections • DevOps Network
@@ -511,7 +517,7 @@ export default function Contact() {
 
         
         <a
-          href="tel:+919013030173"
+          href={`tel:${CONTACT_PHONE}`}
           style={{
             position: 'relative',
             padding: '2rem',
@@ -587,7 +593,7 @@ export default function Contact() {
               Phone
             </div>
             <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>
-              +91 901 303 0173
+              {CONTACT_PHONE_DISPLAY}
             </div>
             <div style={{ fontSize: 12, color: 'var(--muted)' }}>
               Available Mon-Fri, 10AM-7PM IST

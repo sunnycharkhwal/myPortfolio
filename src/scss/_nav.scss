@@ -98,13 +98,17 @@
 .sc-drawer {
   position: fixed;
   inset: 0;
-  z-index: 150;
+  // Above the fixed nav bar (z-index: 200) so the drawer's own logo/close button
+  // fully cover it instead of both rendering on top of each other when open.
+  z-index: 250;
   background: rgba(10, 10, 15, 0.98);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2.5rem;
+  gap: 1.1rem;
+  padding: 6rem 1.5rem 3rem;
+  overflow-y: auto;
   transform: translateX(100%);
   transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   backdrop-filter: blur(30px);

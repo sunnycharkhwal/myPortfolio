@@ -1,417 +1,376 @@
 import { useRef, useEffect, useState } from 'react'
-import { EXPERIENCE, EXPERIENCE_TECH, EXPERIENCE_ACHIEVEMENTS } from '../data/index.js'
+import { FaGraduationCap } from 'react-icons/fa'
+import { listWorkHistory, listAchievements, listEducation } from '../api/experienceApi.js'
+import { resolveIcon } from '../utils/iconRegistry.js'
 import SectionHeader from './SectionHeader.jsx'
 import useFadeIn from '../hooks/useFadeIn.js'
+
+const ACCENTS = ['#00d4ff', '#a855f7', '#10b981', '#f97316']
+
+function ExperienceCard({ entry, index, isVisible }) {
+  const [expanded, setExpanded] = useState(false)
+  const collapsedCount = 2
+  const hasMore = entry.points.length > collapsedCount
+  const visiblePoints = expanded ? entry.points : entry.points.slice(0, collapsedCount)
+  const accent = ACCENTS[index % ACCENTS.length]
+
+  return (
+    <div style={{
+      position: 'relative',
+      display: 'flex',
+      gap: 'clamp(0.85rem, 3vw, 1.5rem)',
+      opacity: isVisible ? 1 : 0,
+      transform: isVisible ? 'translateX(0)' : 'translateX(-30px)',
+      transition: `opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1) ${0.2 + index * 0.15}s, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) ${0.2 + index * 0.15}s`,
+    }}>
+      {/* timeline node */}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0, width: 30 }}>
+        <div style={{
+          position: 'relative',
+          width: 14,
+          height: 14,
+          borderRadius: '50%',
+          marginTop: 10,
+          background: entry.current ? accent : 'var(--bg2)',
+          border: `2px solid ${accent}`,
+          boxShadow: entry.current ? `0 0 16px ${accent}` : 'none',
+          zIndex: 2,
+        }}>
+          {entry.current && <span className="exp-node-ping" style={{ borderColor: accent, color: accent }} />}
+        </div>
+      </div>
+
+      {/* card */}
+      <div
+        className="exp-card"
+        style={{
+          '--exp-accent': accent,
+          flex: 1,
+          minWidth: 0,
+          background: 'linear-gradient(135deg, var(--bg2) 0%, var(--bg3) 100%)',
+          border: '1px solid var(--border)',
+          borderRadius: 18,
+          padding: 'clamp(1.15rem, 3vw, 1.6rem)',
+          marginBottom: 'clamp(1.25rem, 4vw, 2rem)',
+        }}
+      >
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: '0.65rem' }}>
+          <span style={{
+            fontFamily: 'var(--mono)', fontSize: 11, fontWeight: 700,
+            color: accent, textTransform: 'uppercase', letterSpacing: '0.08em',
+            background: `${accent}18`, border: `1px solid ${accent}40`,
+            padding: '4px 12px', borderRadius: 50,
+          }}>
+            {entry.period}
+          </span>
+          {entry.current && (
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              fontFamily: 'var(--mono)', fontSize: 11, fontWeight: 700,
+              color: 'var(--accent-green)', textTransform: 'uppercase', letterSpacing: '0.06em',
+            }}>
+              <span style={{
+                width: 6, height: 6, borderRadius: '50%',
+                background: 'var(--accent-green)', boxShadow: '0 0 8px var(--accent-green)',
+                animation: 'pulse 2s ease-in-out infinite',
+              }} />
+              Current
+            </span>
+          )}
+        </div>
+
+        <h3 style={{ fontSize: 'clamp(1.05rem, 2.2vw, 1.3rem)', fontWeight: 800, color: 'var(--text)', marginBottom: 4, lineHeight: 1.25 }}>
+          {entry.title}
+        </h3>
+        <p style={{ fontSize: 13.5, color: 'var(--text-secondary)', marginBottom: '0.9rem', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+          <span style={{ color: accent, fontWeight: 600 }}>{entry.company}</span>
+          <span style={{ color: 'var(--muted)' }}>·</span>
+          <span>{entry.location}</span>
+        </p>
+
+        <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 7, marginBottom: '0.85rem' }}>
+          {visiblePoints.map((point, i) => (
+            <li key={i} style={{ display: 'flex', gap: 9, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+              <span style={{ color: accent, flexShrink: 0 }}>▸</span>
+              {point}
+            </li>
+          ))}
+        </ul>
+
+        {hasMore && (
+          <button
+            className="exp-toggle"
+            onClick={() => setExpanded((e) => !e)}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              fontFamily: 'var(--mono)', fontSize: 11.5, fontWeight: 600,
+              color: 'var(--muted)', padding: 0, marginBottom: '1rem',
+              display: 'flex', alignItems: 'center', gap: 6,
+            }}
+          >
+            {expanded ? 'Show less' : `+${entry.points.length - collapsedCount} more`}
+            <span style={{
+              display: 'inline-flex',
+              transform: expanded ? 'rotate(180deg)' : 'none',
+              transition: 'transform 0.3s ease',
+            }}>▾</span>
+          </button>
+        )}
+
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          {entry.tech.map((t) => {
+            const Icon = resolveIcon(t.iconKey)
+            return (
+              <div key={t.name} className="exp-tech-chip" style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                padding: '5px 10px',
+                background: 'rgba(255,255,255,0.03)',
+                border: '1px solid rgba(255,255,255,0.07)',
+                borderRadius: 8,
+              }}>
+                <Icon style={{ fontSize: 13, color: t.color }} />
+                <span style={{ fontSize: 11.5, color: 'var(--text-secondary)', fontWeight: 500 }}>{t.name}</span>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export default function Experience() {
   const ref = useRef()
   const [isVisible, setIsVisible] = useState(false)
-  const [activePoint, setActivePoint] = useState(null)
+  // Public content fetched live from the database — no Redux here: this is a single
+  // self-contained section with no sibling component needing the same data (unlike
+  // the dashboard's Experience tab, which shares one slice across three sections by
+  // design). Fails open to empty arrays on error rather than crashing the page.
+  const [data, setData] = useState({ experience: [], achievements: [], education: [] })
+  const [loaded, setLoaded] = useState(false)
   useFadeIn(ref)
+
+  useEffect(() => {
+    let cancelled = false
+    Promise.all([listWorkHistory(), listAchievements(), listEducation()])
+      .then(([experience, achievements, education]) => {
+        if (!cancelled) {
+          setData({ experience, achievements, education })
+          setLoaded(true)
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setLoaded(true)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true)
-        }
+        if (entry.isIntersecting) setIsVisible(true)
       },
-      { threshold: 0.15 }
+      { threshold: 0.1 }
     )
     if (ref.current) observer.observe(ref.current)
     return () => observer.disconnect()
   }, [])
 
+  const EXPERIENCE = data.experience
+  const EXPERIENCE_ACHIEVEMENTS = data.achievements
+  const EDUCATION = data.education
+
   return (
     <section id="experience" ref={ref} className="sc-section" style={{ overflow: 'hidden' }}>
-      <SectionHeader num="02" title="Experience" />
+      <SectionHeader num="03" title="Experience" />
 
-      
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
         gap: '1rem',
-        marginBottom: '2.5rem',
+        marginBottom: 'clamp(2.5rem, 6vw, 3.5rem)',
+        minHeight: loaded ? undefined : 100,
       }}>
-        {EXPERIENCE_ACHIEVEMENTS.map((ach, i) => (
-          <div
-            key={ach.label}
-            style={{
-              background: 'rgba(18, 18, 26, 0.6)',
-              border: '1px solid rgba(255, 255, 255, 0.06)',
-              borderRadius: 16,
-              padding: '1.5rem 1rem',
-              textAlign: 'center',
-              position: 'relative',
-              overflow: 'hidden',
-              opacity: isVisible ? 1 : 0,
-              transform: isVisible ? 'translateY(0)' : 'translateY(30px)',
-              transition: `all 0.6s ease ${i * 0.1}s`,
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-5px)'
-              e.currentTarget.style.borderColor = `${ach.color}40`
-              e.currentTarget.style.boxShadow = `0 20px 40px -15px ${ach.color}30`
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)'
-              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.06)'
-              e.currentTarget.style.boxShadow = 'none'
-            }}
-          >
-            <ach.icon style={{ 
-              fontSize: 24, 
-              color: ach.color,
-              marginBottom: '0.75rem',
-              filter: `drop-shadow(0 0 10px ${ach.color}50)`,
-            }} />
-            <div style={{
-              fontSize: 'clamp(1.5rem, 3vw, 2rem)',
-              fontWeight: 800,
-              fontFamily: 'var(--mono)',
-              background: `linear-gradient(135deg, ${ach.color}, ${ach.color}aa)`,
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              marginBottom: '0.25rem',
-            }}>
-              {ach.value}
+        {EXPERIENCE_ACHIEVEMENTS.map((ach, i) => {
+          const AchIcon = resolveIcon(ach.iconKey)
+          return (
+            <div
+              key={ach._id}
+              style={{
+                background: 'rgba(18, 18, 26, 0.6)',
+                border: '1px solid rgba(255, 255, 255, 0.06)',
+                borderRadius: 16,
+                padding: '1.25rem 1rem',
+                textAlign: 'center',
+                position: 'relative',
+                overflow: 'hidden',
+                opacity: isVisible ? 1 : 0,
+                transform: isVisible ? 'translateY(0)' : 'translateY(30px)',
+                transition: `all 0.6s ease ${i * 0.1}s`,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-5px)'
+                e.currentTarget.style.borderColor = `${ach.color}40`
+                e.currentTarget.style.boxShadow = `0 20px 40px -15px ${ach.color}30`
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)'
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.06)'
+                e.currentTarget.style.boxShadow = 'none'
+              }}
+            >
+              <AchIcon style={{
+                fontSize: 22,
+                color: ach.color,
+                marginBottom: '0.65rem',
+                filter: `drop-shadow(0 0 10px ${ach.color}50)`,
+              }} />
+              <div style={{
+                fontSize: 'clamp(1.35rem, 3vw, 1.75rem)',
+                fontWeight: 800,
+                fontFamily: 'var(--mono)',
+                background: `linear-gradient(135deg, ${ach.color}, ${ach.color}aa)`,
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                marginBottom: '0.2rem',
+              }}>
+                {ach.value}
+              </div>
+              <div style={{
+                fontSize: 11,
+                color: 'var(--text-secondary)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+              }}>
+                {ach.label}
+              </div>
             </div>
-            <div style={{
-              fontSize: 12,
-              color: 'var(--text-secondary)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-            }}>
-              {ach.label}
-            </div>
-          </div>
+          )
+        })}
+      </div>
+
+      <div style={{ position: 'relative', maxWidth: 760, margin: '0 auto' }}>
+        <div style={{
+          position: 'absolute',
+          left: 14,
+          top: 10,
+          bottom: 10,
+          width: 2,
+          background: 'linear-gradient(180deg, var(--accent) 0%, var(--accent-purple) 50%, var(--accent-green) 100%)',
+          opacity: 0.4,
+          transform: isVisible ? 'scaleY(1)' : 'scaleY(0)',
+          transformOrigin: 'top',
+          transition: 'transform 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.1s',
+        }} />
+
+        {EXPERIENCE.map((entry, i) => (
+          <ExperienceCard key={entry._id} entry={entry} index={i} isVisible={isVisible} />
         ))}
       </div>
 
-      
-      <div style={{
-        position: 'relative',
-        background: 'linear-gradient(135deg, rgba(18, 18, 26, 0.9) 0%, rgba(12, 12, 18, 0.95) 100%)',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
-        borderRadius: 28,
-        padding: 'clamp(1.5rem, 4vw, 3rem)',
-        overflow: 'hidden',
-        boxShadow: '0 40px 80px -20px rgba(0, 0, 0, 0.5)',
-        opacity: isVisible ? 1 : 0,
-        transform: isVisible ? 'translateY(0)' : 'translateY(40px)',
-        transition: 'all 0.7s ease 0.3s',
-      }}>
-        
-        <div style={{
-          position: 'absolute',
-          top: '-50%',
-          right: '-30%',
-          width: '80%',
-          height: '150%',
-          background: `
-            radial-gradient(circle at center, rgba(0, 212, 255, 0.08) 0%, transparent 50%),
-            radial-gradient(circle at 50% 100%, rgba(168, 85, 247, 0.06) 0%, transparent 40%)
-          `,
-          animation: isVisible ? 'gradientShift 20s ease infinite' : 'none',
-          pointerEvents: 'none',
-        }} />
-
-        
-        <div style={{
-          position: 'absolute',
-          top: 0,
-          left: '10%',
-          right: '10%',
-          height: 1,
-          background: 'linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.5), rgba(168, 85, 247, 0.5), transparent)',
-        }} />
-
-        <div style={{ position: 'relative', zIndex: 1 }}>
-          
-          <div style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: '1.5rem',
-            alignItems: 'flex-start',
-            marginBottom: '2rem',
-          }}>
-            
-            <div style={{
-              width: 70,
-              height: 70,
-              borderRadius: 18,
-              background: 'linear-gradient(135deg, rgba(0, 212, 255, 0.15), rgba(168, 85, 247, 0.1))',
-              border: '1px solid rgba(0, 212, 255, 0.2)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 28,
-              flexShrink: 0,
-              boxShadow: '0 0 30px rgba(0, 212, 255, 0.15)',
-            }}>
-              💼
-            </div>
-
-            
-            <div style={{ flex: 1, minWidth: 200 }}>
-              <div style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-                background: 'rgba(0, 212, 255, 0.1)',
-                border: '1px solid rgba(0, 212, 255, 0.2)',
-                borderRadius: 50,
-                padding: '6px 14px',
-                marginBottom: '0.75rem',
-              }}>
-                <span style={{
-                  width: 6, height: 6,
-                  background: 'var(--accent-green)',
-                  borderRadius: '50%',
-                  boxShadow: '0 0 8px var(--accent-green)',
-                }} />
-                <span style={{
-                  fontFamily: 'var(--mono)',
-                  fontSize: 11,
-                  color: 'var(--accent)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.08em',
-                  fontWeight: 600,
-                }}>
-                  {EXPERIENCE.period}
-                </span>
-              </div>
-              
-              <h3 style={{
-                fontSize: 'clamp(1.3rem, 3vw, 1.75rem)',
-                fontWeight: 800,
-                color: 'var(--text)',
-                marginBottom: '0.5rem',
-                lineHeight: 1.2,
-              }}>
-                {EXPERIENCE.title}
-              </h3>
-              
-              <p style={{
-                fontSize: 15,
-                color: 'var(--text-secondary)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                flexWrap: 'wrap',
-              }}>
-                <span style={{ color: 'var(--accent-purple)' }}>{EXPERIENCE.company}</span>
-                <span style={{ color: 'var(--muted)' }}>·</span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                    <circle cx="12" cy="10" r="3"/>
-                  </svg>
-                  {EXPERIENCE.location}
-                </span>
-              </p>
-            </div>
-          </div>
-
-          
-          <div style={{ marginBottom: '2rem' }}>
-            <h4 style={{
-              fontSize: 13,
-              fontFamily: 'var(--mono)',
-              color: 'var(--muted)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.1em',
-              marginBottom: '1.25rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-            }}>
-              <span style={{ color: 'var(--accent)' }}>▸</span>
-              Key Responsibilities
-            </h4>
-            
-            <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {EXPERIENCE.points.map((point, i) => (
-                <li
-                  key={i}
-                  style={{
-                    display: 'flex',
-                    gap: 14,
-                    padding: '1rem 1.25rem',
-                    background: activePoint === i 
-                      ? 'rgba(0, 212, 255, 0.08)' 
-                      : 'rgba(255, 255, 255, 0.02)',
-                    border: `1px solid ${activePoint === i ? 'rgba(0, 212, 255, 0.2)' : 'rgba(255, 255, 255, 0.04)'}`,
-                    borderRadius: 14,
-                    cursor: 'default',
-                    transition: 'all 0.3s ease',
-                    opacity: isVisible ? 1 : 0,
-                    transform: isVisible ? 'translateX(0)' : 'translateX(-30px)',
-                    transitionDelay: `${0.5 + i * 0.1}s`,
-                  }}
-                  onMouseEnter={() => setActivePoint(i)}
-                  onMouseLeave={() => setActivePoint(null)}
-                >
-                  <span style={{
-                    width: 28,
-                    height: 28,
-                    borderRadius: 8,
-                    background: activePoint === i 
-                      ? 'var(--gradient-1)' 
-                      : 'rgba(0, 212, 255, 0.1)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                    fontSize: 12,
-                    fontWeight: 700,
-                    color: activePoint === i ? '#0a0a0f' : 'var(--accent)',
-                    transition: 'all 0.3s ease',
-                  }}>
-                    {String(i + 1).padStart(2, '0')}
-                  </span>
-                  <span style={{
-                    fontSize: 15,
-                    color: activePoint === i ? 'var(--text)' : 'var(--text-secondary)',
-                    lineHeight: 1.7,
-                    transition: 'color 0.3s ease',
-                  }}>
-                    {point}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          
-          <div>
-            <h4 style={{
-              fontSize: 13,
-              fontFamily: 'var(--mono)',
-              color: 'var(--muted)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.1em',
-              marginBottom: '1rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-            }}>
-              <span style={{ color: 'var(--accent-purple)' }}>▸</span>
-              Technologies Used
-            </h4>
-            
-            <div style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: '0.75rem',
-            }}>
-              {EXPERIENCE_TECH.map((tech, i) => (
-                <div
-                  key={tech.name}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    padding: '8px 14px',
-                    background: 'rgba(255, 255, 255, 0.03)',
-                    border: '1px solid rgba(255, 255, 255, 0.06)',
-                    borderRadius: 10,
-                    cursor: 'default',
-                    transition: 'all 0.3s ease',
-                    opacity: isVisible ? 1 : 0,
-                    transform: isVisible ? 'translateY(0)' : 'translateY(20px)',
-                    transitionDelay: `${1 + i * 0.05}s`,
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = `${tech.color}15`
-                    e.currentTarget.style.borderColor = `${tech.color}40`
-                    e.currentTarget.style.transform = 'translateY(-2px)'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)'
-                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.06)'
-                    e.currentTarget.style.transform = 'translateY(0)'
-                  }}
-                >
-                  <tech.Icon style={{ 
-                    fontSize: 16, 
-                    color: tech.color,
-                    filter: `drop-shadow(0 0 4px ${tech.color}50)`,
-                  }} />
-                  <span style={{
-                    fontSize: 13,
-                    fontWeight: 500,
-                    color: 'var(--text)',
-                  }}>
-                    {tech.name}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        
-        <div style={{
-          position: 'absolute',
-          bottom: 20,
-          right: 20,
-          fontFamily: 'var(--mono)',
-          fontSize: 11,
-          color: 'var(--muted)',
-          opacity: 0.4,
-        }}>
-          <span style={{ color: 'var(--accent-green)' }}>const</span> experience = <span style={{ color: 'var(--accent-purple)' }}>"valuable"</span>;
-        </div>
-      </div>
-
-      
       <div style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         gap: '1rem',
-        marginTop: '2.5rem',
+        marginTop: '1rem',
         opacity: isVisible ? 1 : 0,
-        transition: 'opacity 0.6s ease 1.2s',
+        transition: 'opacity 0.6s ease 1s',
       }}>
-        <div style={{
-          width: 40,
-          height: 1,
-          background: 'linear-gradient(90deg, transparent, var(--border))',
-        }} />
+        <div style={{ width: 40, height: 1, background: 'linear-gradient(90deg, transparent, var(--border))' }} />
         <span style={{
-          fontFamily: 'var(--mono)',
-          fontSize: 12,
-          color: 'var(--muted)',
-          textTransform: 'uppercase',
-          letterSpacing: '0.1em',
+          fontFamily: 'var(--mono)', fontSize: 12, color: 'var(--muted)',
+          textTransform: 'uppercase', letterSpacing: '0.1em',
         }}>
           Career Journey
         </span>
-        <div style={{
-          display: 'flex',
-          gap: 6,
-        }}>
-          {[...Array(4)].map((_, i) => (
+        <div style={{ display: 'flex', gap: 6 }}>
+          {EXPERIENCE.map((entry) => (
             <div
-              key={i}
+              key={entry._id}
               style={{
                 width: 8,
                 height: 8,
                 borderRadius: '50%',
-                background: i === 0 ? 'var(--accent)' : 'rgba(255, 255, 255, 0.1)',
-                boxShadow: i === 0 ? '0 0 10px var(--accent)' : 'none',
-                animation: i === 0 ? 'pulse 2s ease-in-out infinite' : 'none',
+                background: entry.current ? 'var(--accent)' : 'rgba(255, 255, 255, 0.1)',
+                boxShadow: entry.current ? '0 0 10px var(--accent)' : 'none',
+                animation: entry.current ? 'pulse 2s ease-in-out infinite' : 'none',
               }}
             />
           ))}
         </div>
+        <div style={{ width: 40, height: 1, background: 'linear-gradient(90deg, var(--border), transparent)' }} />
+      </div>
+
+      <div style={{
+        maxWidth: 760,
+        margin: 'clamp(2.5rem, 6vw, 3.5rem) auto 0',
+        opacity: isVisible ? 1 : 0,
+        transform: isVisible ? 'translateY(0)' : 'translateY(20px)',
+        transition: 'all 0.6s ease 0.5s',
+      }}>
+        <h4 style={{
+          fontSize: 13,
+          fontFamily: 'var(--mono)',
+          color: 'var(--muted)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.1em',
+          marginBottom: '1rem',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+        }}>
+          <span style={{ color: 'var(--accent-purple)' }}>▸</span>
+          Education
+        </h4>
+
         <div style={{
-          width: 40,
-          height: 1,
-          background: 'linear-gradient(90deg, var(--border), transparent)',
-        }} />
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))',
+          gap: '0.9rem',
+        }}>
+          {EDUCATION.map((edu) => (
+            <div key={edu._id} className="exp-card" style={{
+              '--exp-accent': '#a855f7',
+              display: 'flex',
+              gap: 14,
+              background: 'rgba(18, 18, 26, 0.6)',
+              border: '1px solid rgba(255, 255, 255, 0.06)',
+              borderRadius: 14,
+              padding: '1.1rem 1.25rem',
+            }}>
+              <div style={{
+                width: 38,
+                height: 38,
+                borderRadius: 10,
+                flexShrink: 0,
+                background: 'rgba(168, 85, 247, 0.1)',
+                border: '1px solid rgba(168, 85, 247, 0.25)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+                <FaGraduationCap style={{ fontSize: 16, color: 'var(--accent-purple)' }} />
+              </div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--text)', marginBottom: 2, lineHeight: 1.35 }}>
+                  {edu.degree}
+                </div>
+                <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 6 }}>
+                  {edu.field}
+                </div>
+                <div style={{ fontSize: 12, color: 'var(--muted)' }}>
+                  {edu.institution} · {edu.location}
+                </div>
+                <div style={{ fontSize: 11, fontFamily: 'var(--mono)', color: 'var(--accent-purple)', marginTop: 4 }}>
+                  {edu.period}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   )

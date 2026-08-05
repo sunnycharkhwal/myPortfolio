@@ -1,37 +1,52 @@
 import {
   FaRocket, FaCloud, FaShieldAlt, FaDatabase, FaExclamationTriangle,
-  FaCubes, FaDollarSign, FaServer, FaLayerGroup,
+  FaCubes, FaDollarSign, FaServer, FaLayerGroup, FaShoppingCart,
+  FaChartBar, FaLaptopCode,
 } from 'react-icons/fa'
-import { SiTerraform, SiKubernetes, SiPrometheus } from 'react-icons/si'
+import { SiTerraform, SiKubernetes, SiPrometheus, SiReact } from 'react-icons/si'
 import { HiViewGrid } from 'react-icons/hi'
+
+// Top-level project groups shown as the primary filter tabs.
+export const PROJECT_GROUPS = [
+  { id: 'all', label: 'All Projects', icon: HiViewGrid, color: '#00d4ff' },
+  { id: 'frontend', label: 'Frontend', icon: SiReact, color: '#61DAFB' },
+  { id: 'devops', label: 'DevOps', icon: FaServer, color: '#00d4ff' },
+]
 
 // Maps a project category id to its CSS badge class (defined in src/scss/_components.scss).
 export const CATEGORY_CLASS = {
   cicd:'cat-cicd', iac:'cat-iac', k8s:'cat-k8s', cloud:'cat-cloud',
   mon:'cat-mon', sec:'cat-sec', inc:'cat-inc', db:'cat-db',
-  mesh:'cat-mesh', fin:'cat-fin', dr:'cat-dr', mod:'cat-mod'
+  mesh:'cat-mesh', fin:'cat-fin', dr:'cat-dr', mod:'cat-mod',
+  'react-apps':'cat-react', ecommerce:'cat-ecom', dashboard:'cat-dash', landing:'cat-landing',
 }
 
-// Filter bar taxonomy for the Projects section.
+// Sub-category taxonomy for the Projects section. Each entry belongs to a PROJECT_GROUPS id.
 export const PROJECT_CATEGORIES = [
-  { id: 'all', label: 'All Projects', icon: HiViewGrid, color: '#00d4ff' },
-  { id: 'cicd', label: 'CI/CD', icon: FaRocket, color: '#00d4ff' },
-  { id: 'iac', label: 'IaC', icon: SiTerraform, color: '#7B42BC' },
-  { id: 'k8s', label: 'Containers', icon: SiKubernetes, color: '#326CE5' },
-  { id: 'cloud', label: 'Cloud', icon: FaCloud, color: '#FF9900' },
-  { id: 'mon', label: 'Monitoring', icon: SiPrometheus, color: '#E6522C' },
-  { id: 'sec', label: 'Security', icon: FaShieldAlt, color: '#ff6b6b' },
-  { id: 'inc', label: 'Incident', icon: FaExclamationTriangle, color: '#fbbf24' },
-  { id: 'db', label: 'Database', icon: FaDatabase, color: '#a855f7' },
-  { id: 'mesh', label: 'Microservices', icon: FaCubes, color: '#10b981' },
-  { id: 'fin', label: 'FinOps', icon: FaDollarSign, color: '#22c55e' },
-  { id: 'dr', label: 'DR', icon: FaServer, color: '#f97316' },
-  { id: 'mod', label: 'Modernization', icon: FaLayerGroup, color: '#06b6d4' },
+  // Frontend
+  { id: 'react-apps', group: 'frontend', label: 'React Apps', icon: SiReact, color: '#61DAFB' },
+  { id: 'ecommerce', group: 'frontend', label: 'E-Commerce', icon: FaShoppingCart, color: '#f43f5e' },
+  { id: 'dashboard', group: 'frontend', label: 'Dashboards', icon: FaChartBar, color: '#14b8a6' },
+  { id: 'landing', group: 'frontend', label: 'Landing Pages', icon: FaLaptopCode, color: '#eab308' },
+  // DevOps
+  { id: 'cicd', group: 'devops', label: 'CI/CD', icon: FaRocket, color: '#00d4ff' },
+  { id: 'iac', group: 'devops', label: 'IaC', icon: SiTerraform, color: '#7B42BC' },
+  { id: 'k8s', group: 'devops', label: 'Containers', icon: SiKubernetes, color: '#326CE5' },
+  { id: 'cloud', group: 'devops', label: 'Cloud', icon: FaCloud, color: '#FF9900' },
+  { id: 'mon', group: 'devops', label: 'Monitoring', icon: SiPrometheus, color: '#E6522C' },
+  { id: 'sec', group: 'devops', label: 'Security', icon: FaShieldAlt, color: '#ff6b6b' },
+  { id: 'inc', group: 'devops', label: 'Incident', icon: FaExclamationTriangle, color: '#fbbf24' },
+  { id: 'db', group: 'devops', label: 'Database', icon: FaDatabase, color: '#a855f7' },
+  { id: 'mesh', group: 'devops', label: 'Microservices', icon: FaCubes, color: '#10b981' },
+  { id: 'fin', group: 'devops', label: 'FinOps', icon: FaDollarSign, color: '#22c55e' },
+  { id: 'dr', group: 'devops', label: 'DR', icon: FaServer, color: '#f97316' },
+  { id: 'mod', group: 'devops', label: 'Modernization', icon: FaLayerGroup, color: '#06b6d4' },
 ]
 
 export const PROJECTS = [
   {
-    id: 1, category: 'cicd', catLabel: 'CI/CD Pipeline',
+    id: 1, group: 'devops', category: 'cicd', catLabel: 'CI/CD Pipeline',
+    images: ['https://picsum.photos/seed/sc-project-1-1/1200/750', 'https://picsum.photos/seed/sc-project-1-2/1200/750', 'https://picsum.photos/seed/sc-project-1-3/1200/750'],
     title: 'E-Commerce Platform: Automated Multi-Stage Deployment Pipeline',
     subtitle: 'Zero-downtime deployments for a Node.js + React app to AWS ECS',
     objective: 'Build a fully automated CI/CD pipeline that takes every GitHub commit through lint, test, security scan, staging deploy, smoke test, and production deploy — with automatic rollback on failure.',
@@ -52,7 +67,8 @@ export const PROJECTS = [
     ]
   },
   {
-    id: 2, category: 'iac', catLabel: 'Infrastructure as Code',
+    id: 2, group: 'devops', category: 'iac', catLabel: 'Infrastructure as Code',
+    images: ['https://picsum.photos/seed/sc-project-2-1/1200/750', 'https://picsum.photos/seed/sc-project-2-2/1200/750'],
     title: 'SaaS Startup: Multi-Environment AWS Infrastructure with Terraform',
     subtitle: 'Reproducible dev / staging / prod environments from a single codebase',
     objective: 'Replace ad-hoc ClickOps with a Terraform monorepo that provisions identical-but-isolated VPCs, EKS clusters, RDS databases, and IAM roles across three environments, with state stored remotely and drift detection in CI.',
@@ -73,7 +89,8 @@ export const PROJECTS = [
     ]
   },
   {
-    id: 3, category: 'k8s', catLabel: 'Containers & Orchestration',
+    id: 3, group: 'devops', category: 'k8s', catLabel: 'Containers & Orchestration',
+    images: ['https://picsum.photos/seed/sc-project-3-1/1200/750'],
     title: 'FinTech App: Dockerized Microservices on Amazon EKS',
     subtitle: 'Containerizing a payments platform and running it on managed Kubernetes',
     objective: 'Package a multi-service payments application (API gateway, auth, transactions, notifications) into Docker containers, orchestrate them on EKS, and implement horizontal pod autoscaling and self-healing.',
@@ -94,7 +111,8 @@ export const PROJECTS = [
     ]
   },
   {
-    id: 4, category: 'cloud', catLabel: 'Cloud Migration',
+    id: 4, group: 'devops', category: 'cloud', catLabel: 'Cloud Migration',
+    images: ['https://picsum.photos/seed/sc-project-4-1/1200/750', 'https://picsum.photos/seed/sc-project-4-2/1200/750', 'https://picsum.photos/seed/sc-project-4-3/1200/750'],
     title: 'Retail Chain: Lift-and-Shift + Re-Architecture to AWS',
     subtitle: 'Migrating an on-prem inventory & POS system to AWS in two phases',
     objective: 'Migrate a 15-year-old on-premises retail management system to AWS — Phase 1 is lift-and-shift for speed; Phase 2 re-architects the monolith into managed services and reduces costs by 40%.',
@@ -115,7 +133,8 @@ export const PROJECTS = [
     ]
   },
   {
-    id: 5, category: 'mon', catLabel: 'Monitoring & Observability',
+    id: 5, group: 'devops', category: 'mon', catLabel: 'Monitoring & Observability',
+    images: ['https://picsum.photos/seed/sc-project-5-1/1200/750'],
     title: 'Healthcare SaaS: Full-Stack Observability Platform',
     subtitle: 'Logs, metrics, traces, and alerting for a HIPAA-compliant application',
     objective: 'Implement end-to-end observability for a multi-tenant healthcare SaaS on AWS — covering structured logging, distributed tracing across microservices, custom business metrics, and SLO-based alerting that pages the right team at the right severity.',
@@ -136,7 +155,8 @@ export const PROJECTS = [
     ]
   },
   {
-    id: 6, category: 'sec', catLabel: 'DevSecOps',
+    id: 6, group: 'devops', category: 'sec', catLabel: 'DevSecOps',
+    images: ['https://picsum.photos/seed/sc-project-6-1/1200/750', 'https://picsum.photos/seed/sc-project-6-2/1200/750'],
     title: 'Insurance Platform: Security-First CI/CD Pipeline (DevSecOps)',
     subtitle: 'Embedding security scanning, secret detection, and compliance into every deploy',
     objective: 'Build a DevSecOps pipeline for a PCI-DSS compliant insurance platform where security is not a gate at the end — every stage validates security, secrets are managed centrally, and compliance evidence is generated automatically.',
@@ -157,7 +177,8 @@ export const PROJECTS = [
     ]
   },
   {
-    id: 7, category: 'inc', catLabel: 'Incident Management',
+    id: 7, group: 'devops', category: 'inc', catLabel: 'Incident Management',
+    images: ['https://picsum.photos/seed/sc-project-7-1/1200/750', 'https://picsum.photos/seed/sc-project-7-2/1200/750', 'https://picsum.photos/seed/sc-project-7-3/1200/750'],
     title: 'Ride-Sharing App: Automated Incident Response & Runbooks',
     subtitle: 'From alert firing to auto-remediation and structured post-mortems',
     objective: 'Build an incident management system where common failure modes are detected and auto-remediated within minutes, on-call engineers have runbooks that guide them step-by-step, and every incident produces a structured post-mortem with action items tracked.',
@@ -178,7 +199,8 @@ export const PROJECTS = [
     ]
   },
   {
-    id: 8, category: 'db', catLabel: 'Database DevOps',
+    id: 8, group: 'devops', category: 'db', catLabel: 'Database DevOps',
+    images: ['https://picsum.photos/seed/sc-project-8-1/1200/750'],
     title: 'B2B SaaS: Zero-Downtime Database Schema Migrations',
     subtitle: 'Automated, safe, and reversible database changes on Amazon Aurora PostgreSQL',
     objective: 'Implement a database change management workflow using Flyway and Amazon Aurora PostgreSQL that enables zero-downtime schema migrations, instant rollback capability, and fully automated execution in CI/CD — eliminating risky manual DB changes.',
@@ -199,7 +221,8 @@ export const PROJECTS = [
     ]
   },
   {
-    id: 9, category: 'mesh', catLabel: 'Microservices & Service Mesh',
+    id: 9, group: 'devops', category: 'mesh', catLabel: 'Microservices & Service Mesh',
+    images: ['https://picsum.photos/seed/sc-project-9-1/1200/750', 'https://picsum.photos/seed/sc-project-9-2/1200/750'],
     title: 'Media Streaming Platform: Service Mesh with AWS App Mesh + EKS',
     subtitle: 'Reliable inter-service communication, canary releases, and circuit breaking',
     objective: 'Implement a service mesh across 12 microservices on EKS to gain fine-grained traffic control for canary deployments, automatic circuit breaking for cascading failure prevention, and mTLS for all east-west service communication.',
@@ -220,7 +243,8 @@ export const PROJECTS = [
     ]
   },
   {
-    id: 10, category: 'fin', catLabel: 'FinOps & Cost Optimization',
+    id: 10, group: 'devops', category: 'fin', catLabel: 'FinOps & Cost Optimization',
+    images: ['https://picsum.photos/seed/sc-project-10-1/1200/750', 'https://picsum.photos/seed/sc-project-10-2/1200/750', 'https://picsum.photos/seed/sc-project-10-3/1200/750'],
     title: 'Scale-Up: AWS Cost Optimization & FinOps Program',
     subtitle: 'Reducing a $180K/month AWS bill by 38% without affecting performance',
     objective: 'Implement a FinOps program across AWS accounts to identify waste, enforce tagging, rightsizes resources, migrate eligible workloads to Spot and Savings Plans, and give engineering teams real-time cost visibility and budgets.',
@@ -241,7 +265,8 @@ export const PROJECTS = [
     ]
   },
   {
-    id: 11, category: 'dr', catLabel: 'Disaster Recovery',
+    id: 11, group: 'devops', category: 'dr', catLabel: 'Disaster Recovery',
+    images: ['https://picsum.photos/seed/sc-project-11-1/1200/750'],
     title: 'Banking App: Multi-Region Active-Active DR with Chaos Testing',
     subtitle: 'RTO < 5 min, RPO < 30 sec — and proving it through regular chaos exercises',
     objective: 'Design and implement an active-active multi-region DR architecture for a core banking application with near-zero RPO and RTO. Validate the design continuously using automated chaos engineering experiments — not just annual manual DR drills.',
@@ -262,7 +287,8 @@ export const PROJECTS = [
     ]
   },
   {
-    id: 12, category: 'mod', catLabel: 'Legacy Modernization',
+    id: 12, group: 'devops', category: 'mod', catLabel: 'Legacy Modernization',
+    images: ['https://picsum.photos/seed/sc-project-12-1/1200/750', 'https://picsum.photos/seed/sc-project-12-2/1200/750'],
     title: 'Government Agency: Strangling a 20-Year-Old Java Monolith',
     subtitle: 'Incrementally migrating a monolith to microservices using the Strangler Fig pattern',
     objective: 'Modernize a 20-year-old Java EE monolith (running on on-prem WebSphere) without a risky big-bang rewrite. Use the Strangler Fig pattern to extract services one-by-one over 18 months, run monolith and new services in parallel, and retire the monolith only when all functionality is migrated.',
@@ -280,6 +306,94 @@ export const PROJECTS = [
       'Each extracted service independently deployable, scalable, and testable',
       'WebSphere licensing cost eliminated — saving $120K/year',
       'Deployment frequency went from quarterly to daily by month 12',
+    ]
+  },
+  {
+    id: 13, group: 'frontend', category: 'react-apps', catLabel: 'React Application',
+    images: ['https://picsum.photos/seed/sc-project-13-1/1200/750', 'https://picsum.photos/seed/sc-project-13-2/1200/750', 'https://picsum.photos/seed/sc-project-13-3/1200/750'],
+    title: 'Enterprise Design System: Shared Component Library for 30+ Products',
+    subtitle: 'A themeable React + TypeScript component library adopted across an entire product suite',
+    objective: 'Replace duplicated, inconsistent UI code across 30+ internal applications with a single versioned component library — cutting new-feature build time and giving every product the same look, accessibility baseline, and update path.',
+    steps: [
+      { title: 'Component Architecture', text: 'Built 40+ composable, accessible components (buttons, forms, modals, data tables) in <strong>React + TypeScript</strong>, each with strict prop typing and JSDoc.' },
+      { title: 'Theming Layer', text: '<strong>Styled Components</strong> + a design-token system (colors, spacing, typography) let each product apply its own brand while sharing the same component logic.' },
+      { title: 'Documentation & Playground', text: '<strong>Storybook</strong> hosts every component with live prop controls, usage guidelines, and accessibility notes — the single source of truth for design and engineering.' },
+      { title: 'Build & Distribution', text: 'Library bundled with <strong>Rollup</strong> (ESM + CJS outputs, tree-shakeable) and published as a versioned private npm package consumed via workspace protocol.' },
+      { title: 'Visual Regression', text: '<strong>Chromatic</strong> runs on every PR, catching unintended visual changes across all Storybook stories before merge.' },
+      { title: 'Testing', text: '<strong>Jest + React Testing Library</strong> cover component behavior; 90%+ coverage enforced in CI before a new version can be published.' },
+    ],
+    techStack: ['React', 'TypeScript', 'Storybook', 'Styled Components', 'Rollup', 'Jest', 'Chromatic'],
+    outcomes: [
+      'Adopted by 30+ internal applications, replacing fragmented one-off UI code',
+      'New feature UI build time cut by roughly 40% via reusable components',
+      'Consistent accessibility (WCAG AA) baseline enforced across every product',
+      'Design and engineering now ship from the same source of truth',
+    ]
+  },
+  {
+    id: 14, group: 'frontend', category: 'ecommerce', catLabel: 'E-Commerce',
+    images: ['https://picsum.photos/seed/sc-project-14-1/1200/750'],
+    title: 'E-Commerce Storefront: High-Conversion Next.js Shopping Experience',
+    subtitle: 'Server-rendered storefront with cart, checkout, and real-time inventory',
+    objective: 'Build a fast, SEO-friendly storefront that converts — combining server-side rendering for product pages, an optimistic cart experience, and a streamlined checkout that minimizes drop-off.',
+    steps: [
+      { title: 'Rendering Strategy', text: '<strong>Next.js</strong> ISR (Incremental Static Regeneration) serves product and category pages — fast first paint with content that stays fresh without a full rebuild.' },
+      { title: 'Cart & State', text: 'Cart state managed in <strong>Redux Toolkit</strong> with optimistic updates — items appear instantly while the request confirms in the background.' },
+      { title: 'Checkout Flow', text: '<strong>Stripe Elements</strong> embedded checkout with saved payment methods, real-time validation, and a single-page flow to reduce abandonment.' },
+      { title: 'Styling System', text: '<strong>Tailwind CSS</strong> utility classes with a shared config keep the storefront visually consistent while shipping new pages quickly.' },
+      { title: 'Performance', text: 'Image optimization via <strong>next/image</strong>, route-based code splitting, and font preloading keep Lighthouse performance scores above 90.' },
+      { title: 'Deployment', text: 'Deployed on <strong>Vercel</strong> with preview deployments per PR, giving stakeholders a live URL to review before merge.' },
+    ],
+    techStack: ['Next.js', 'React', 'Redux Toolkit', 'Stripe', 'Tailwind CSS', 'Vercel'],
+    outcomes: [
+      'Checkout completion rate improved after streamlining to a single-page flow',
+      'Lighthouse performance score consistently above 90 on product pages',
+      'Organic search traffic grew after moving to SSR/ISR for product pages',
+      'New landing campaigns ship in hours, not days, via reusable page templates',
+    ]
+  },
+  {
+    id: 15, group: 'frontend', category: 'dashboard', catLabel: 'Dashboard',
+    images: ['https://picsum.photos/seed/sc-project-15-1/1200/750', 'https://picsum.photos/seed/sc-project-15-2/1200/750'],
+    title: 'Analytics Dashboard: Real-Time Business Intelligence Platform',
+    subtitle: 'Interactive charts and live data widgets for executive decision-making',
+    objective: 'Give leadership a single real-time view of key business metrics — replacing static weekly spreadsheet exports with live, filterable dashboards that update as new data arrives.',
+    steps: [
+      { title: 'Widget Framework', text: 'Built a drag-and-drop grid of reusable widget components (line charts, KPI tiles, tables) in <strong>React</strong>, each bound to its own data source.' },
+      { title: 'Live Data', text: '<strong>WebSocket</strong> connection streams metric updates to the dashboard, so KPI tiles and charts update without a page refresh.' },
+      { title: 'Charting', text: '<strong>Recharts</strong> renders line, bar, and area charts with custom tooltips and responsive layouts that adapt to any screen size.' },
+      { title: 'State Management', text: '<strong>Redux Toolkit</strong> centralizes filter state (date range, team, region) so every widget on the dashboard reacts consistently to a single filter change.' },
+      { title: 'UI Components', text: '<strong>Material UI</strong> provides the data tables, date pickers, and dropdown filters, themed to match the product\'s design system.' },
+      { title: 'Export & Sharing', text: 'Any dashboard view can be exported to PDF or shared via a permissioned link, replacing manual screenshot-and-email workflows.' },
+    ],
+    techStack: ['React', 'Redux Toolkit', 'Recharts', 'WebSocket', 'Material UI'],
+    outcomes: [
+      'Replaced weekly manual reporting with an always-current live dashboard',
+      'Executives self-serve metrics instead of requesting custom reports',
+      'Widget framework let new metrics be added in under an hour',
+      'Real-time updates surfaced a revenue anomaly same-day instead of a week later',
+    ]
+  },
+  {
+    id: 16, group: 'frontend', category: 'landing', catLabel: 'Landing Page',
+    images: ['https://picsum.photos/seed/sc-project-16-1/1200/750'],
+    title: 'Marketing Landing Pages: High-Performance Campaign Sites',
+    subtitle: 'Pixel-perfect, SEO-optimized landing pages with sub-1s load times',
+    objective: 'Give the marketing team a fast way to launch polished, high-converting campaign landing pages without waiting on a full release cycle — while keeping performance and SEO scores high.',
+    steps: [
+      { title: 'Page Templates', text: 'Built a library of reusable section templates (hero, feature grid, testimonials, CTA) in <strong>React</strong>, composed together per campaign.' },
+      { title: 'Animation Layer', text: '<strong>Framer Motion</strong> handles scroll-reveal and micro-interactions; <strong>GSAP</strong> drives more complex hero animations without hurting load time.' },
+      { title: 'Build Tooling', text: '<strong>Vite</strong> powers the dev server and production build — sub-second HMR during development and a lean, tree-shaken bundle in production.' },
+      { title: 'Styling', text: '<strong>SCSS</strong> modules keep each campaign\'s custom styling scoped and prevent bleed into the shared component library.' },
+      { title: 'SEO & Meta', text: 'Structured data, Open Graph tags, and semantic HTML generated per-campaign so every landing page is social-share and search ready on launch.' },
+      { title: 'Performance Budget', text: 'Enforced an image-weight and JS bundle budget per page in CI — any page exceeding it fails the build before it reaches production.' },
+    ],
+    techStack: ['React', 'Vite', 'Framer Motion', 'GSAP', 'SCSS'],
+    outcomes: [
+      'New campaign pages launch in under a day instead of a full sprint',
+      'Median page load time under 1 second on 4G',
+      'Consistent 95+ Lighthouse SEO score across all campaign pages',
+      'Marketing team ships and A/B tests pages independently of engineering',
     ]
   },
 ]

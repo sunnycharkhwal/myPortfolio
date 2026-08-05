@@ -56,6 +56,12 @@
   #projects p {
     font-size: 0.9rem !important;
   }
+  /* On tablets/phones, left-align so the row scrolls left-to-right instead of
+     centering (which would hide the overflowed start behind unreachable scroll). */
+  .project-group-tabs,
+  .project-category-chips {
+    justify-content: flex-start !important;
+  }
 }
 
 @media (max-width: 768px) {

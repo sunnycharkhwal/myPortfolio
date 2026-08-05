@@ -73,6 +73,76 @@
   border: 1px solid rgba(74, 222, 128, 0.3);
 }
 
+/* Project Category Colors - Frontend group */
+.cat-react {
+  background: rgba(97, 218, 251, 0.15);
+  color: #61dafb;
+  border: 1px solid rgba(97, 218, 251, 0.3);
+}
+.cat-ecom {
+  background: rgba(244, 63, 94, 0.15);
+  color: #f43f5e;
+  border: 1px solid rgba(244, 63, 94, 0.3);
+}
+.cat-dash {
+  background: rgba(20, 184, 166, 0.15);
+  color: #14b8a6;
+  border: 1px solid rgba(20, 184, 166, 0.3);
+}
+.cat-landing {
+  background: rgba(234, 179, 8, 0.15);
+  color: #eab308;
+  border: 1px solid rgba(234, 179, 8, 0.3);
+}
+
+/* Experience timeline */
+.exp-card {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    transform: translateY(-4px);
+    border-color: var(--exp-accent, var(--accent)) !important;
+    box-shadow: 0 20px 40px -18px var(--exp-accent, var(--accent));
+  }
+}
+
+.exp-tech-chip {
+  transition: all 0.25s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    border-color: var(--exp-accent, var(--accent));
+    background: color-mix(in srgb, var(--exp-accent, var(--accent)) 12%, transparent);
+  }
+}
+
+.exp-toggle {
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: var(--exp-accent, var(--accent));
+  }
+}
+
+@keyframes expNodePing {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+.exp-node-ping {
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  animation: expNodePing 1.8s ease-out infinite;
+}
+
 /* Text Gradient Effect */
 .text-gradient {
   background: var(--gradient-1);

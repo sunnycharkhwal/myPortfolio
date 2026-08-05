@@ -3,10 +3,12 @@ import {
   SiJenkins, SiArgo, SiGitlab, SiGithubactions,
   SiTerraform, SiAnsible, SiPrometheus, SiGrafana,
   SiPython, SiGnubash, SiReact, SiNextdotjs,
-  SiJavascript, SiHtml5,
+  SiJavascript, SiHtml5, SiLinux, SiGit,
 } from 'react-icons/si'
 import {
   FaAws, FaCloud, FaLock, FaShieldAlt, FaTerminal, FaBug, FaCss3Alt,
+  FaServer, FaNetworkWired, FaDatabase, FaRandom, FaRoute, FaArchive,
+  FaLayerGroup, FaCode,
 } from 'react-icons/fa'
 
 export const SKILLS = [
@@ -17,7 +19,13 @@ export const SKILLS = [
     gradient: 'linear-gradient(135deg, #FF9900 0%, #ff6b00 100%)',
     tags: [
       { name: 'AWS', icon: FaAws },
+      { name: 'EC2', icon: FaServer },
       { name: 'EKS', icon: SiKubernetes },
+      { name: 'S3', icon: FaArchive },
+      { name: 'VPC', icon: FaNetworkWired },
+      { name: 'RDS', icon: FaDatabase },
+      { name: 'ALB', icon: FaRandom },
+      { name: 'Route 53', icon: FaRoute },
       { name: 'Secrets Manager', icon: FaLock },
       { name: 'CloudWatch', icon: FaCloud },
       { name: 'IAM', icon: FaShieldAlt },
@@ -54,6 +62,7 @@ export const SKILLS = [
     tags: [
       { name: 'Terraform', icon: SiTerraform },
       { name: 'Ansible', icon: SiAnsible },
+      { name: 'CloudFormation', icon: FaLayerGroup },
     ]
   },
   {
@@ -76,7 +85,7 @@ export const SKILLS = [
       { name: 'SonarQube', icon: FaBug },
       { name: 'Trivy', icon: FaShieldAlt },
       { name: 'OWASP', icon: FaLock },
-      { name: 'IAM Roles', icon: FaShieldAlt },
+      { name: 'IAM/RBAC', icon: FaShieldAlt },
     ]
   },
   {
@@ -88,6 +97,9 @@ export const SKILLS = [
       { name: 'Python', icon: SiPython },
       { name: 'Bash', icon: SiGnubash },
       { name: 'Shell', icon: FaTerminal },
+      { name: 'Linux', icon: SiLinux },
+      { name: 'Git', icon: SiGit },
+      { name: 'REST APIs', icon: FaCode },
     ]
   },
   {

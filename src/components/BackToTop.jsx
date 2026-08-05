@@ -1,15 +1,38 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Fab from '@mui/material/Fab'
 import Zoom from '@mui/material/Zoom'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
 
 export default function BackToTop() {
   const [show, setShow] = useState(false)
+  const footerRef = useRef(null)
+  const tickingRef = useRef(false)
 
   useEffect(() => {
-    const h = () => setShow(window.scrollY > 500)
-    window.addEventListener('scroll', h)
-    return () => window.removeEventListener('scroll', h)
+    footerRef.current = document.querySelector('footer')
+
+    // Hide once the footer (which has its own "Top" control) scrolls into view,
+    // so the fixed FAB never sits on top of it. Reading getBoundingClientRect is a
+    // layout read, so it's throttled to once per animation frame instead of running
+    // on every raw scroll event.
+    const update = () => {
+      const footer = footerRef.current
+      const nearFooter = footer && footer.getBoundingClientRect().top < window.innerHeight
+      setShow(window.scrollY > 500 && !nearFooter)
+      tickingRef.current = false
+    }
+    const onScroll = () => {
+      if (!tickingRef.current) {
+        tickingRef.current = true
+        requestAnimationFrame(update)
+      }
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
+    }
   }, [])
 
   return (
