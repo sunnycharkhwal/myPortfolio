@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
-import { NAV_LINKS, CONTACT_EMAIL } from '../data/index.js'
+import { NAV_LINKS } from '../data/index.js'
 import useScrolled from '../hooks/useScrolled.js'
 import scrollTo from '../utils/scrollTo.js'
 
@@ -132,7 +132,7 @@ export default function Nav() {
 
         
         <a 
-          href={`mailto:${CONTACT_EMAIL}`}
+          href="mailto:sunny.charkhwal@gmail.com"
           className="sc-hire"
           style={{
             position: 'relative',
@@ -263,7 +263,7 @@ export default function Nav() {
 
         
         <a
-          href={`mailto:${CONTACT_EMAIL}`}
+          href="mailto:sunny.charkhwal@gmail.com"
           style={{
             marginTop: '0.5rem',
             fontFamily: 'var(--sans)',

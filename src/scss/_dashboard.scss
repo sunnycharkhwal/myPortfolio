@@ -1,7 +1,0 @@
-// Dashboard-specific hover/pseudo-class rules that inline styles can't express —
-// everything else about the dashboard's look is inline style={{}} using the same
-// CSS custom properties as the rest of the app, per the existing codebase convention.
-
-.dashboard-page table tbody tr:hover {
-  background: rgba(255, 255, 255, 0.02);
-}

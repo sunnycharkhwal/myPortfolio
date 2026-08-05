@@ -1,7 +1,6 @@
 import { useRef, useEffect, useState } from 'react'
 import { FaGraduationCap } from 'react-icons/fa'
-import { listWorkHistory, listAchievements, listEducation } from '../api/experienceApi.js'
-import { resolveIcon } from '../utils/iconRegistry.js'
+import { EXPERIENCE, EXPERIENCE_ACHIEVEMENTS, EDUCATION } from '../data/index.js'
 import SectionHeader from './SectionHeader.jsx'
 import useFadeIn from '../hooks/useFadeIn.js'
 
@@ -118,21 +117,18 @@ function ExperienceCard({ entry, index, isVisible }) {
         )}
 
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-          {entry.tech.map((t) => {
-            const Icon = resolveIcon(t.iconKey)
-            return (
-              <div key={t.name} className="exp-tech-chip" style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                padding: '5px 10px',
-                background: 'rgba(255,255,255,0.03)',
-                border: '1px solid rgba(255,255,255,0.07)',
-                borderRadius: 8,
-              }}>
-                <Icon style={{ fontSize: 13, color: t.color }} />
-                <span style={{ fontSize: 11.5, color: 'var(--text-secondary)', fontWeight: 500 }}>{t.name}</span>
-              </div>
-            )
-          })}
+          {entry.tech.map((t) => (
+            <div key={t.name} className="exp-tech-chip" style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '5px 10px',
+              background: 'rgba(255,255,255,0.03)',
+              border: '1px solid rgba(255,255,255,0.07)',
+              borderRadius: 8,
+            }}>
+              <t.Icon style={{ fontSize: 13, color: t.color }} />
+              <span style={{ fontSize: 11.5, color: 'var(--text-secondary)', fontWeight: 500 }}>{t.name}</span>
+            </div>
+          ))}
         </div>
       </div>
     </div>
@@ -142,30 +138,7 @@ function ExperienceCard({ entry, index, isVisible }) {
 export default function Experience() {
   const ref = useRef()
   const [isVisible, setIsVisible] = useState(false)
-  // Public content fetched live from the database — no Redux here: this is a single
-  // self-contained section with no sibling component needing the same data (unlike
-  // the dashboard's Experience tab, which shares one slice across three sections by
-  // design). Fails open to empty arrays on error rather than crashing the page.
-  const [data, setData] = useState({ experience: [], achievements: [], education: [] })
-  const [loaded, setLoaded] = useState(false)
   useFadeIn(ref)
-
-  useEffect(() => {
-    let cancelled = false
-    Promise.all([listWorkHistory(), listAchievements(), listEducation()])
-      .then(([experience, achievements, education]) => {
-        if (!cancelled) {
-          setData({ experience, achievements, education })
-          setLoaded(true)
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setLoaded(true)
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [])
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -178,10 +151,6 @@ export default function Experience() {
     return () => observer.disconnect()
   }, [])
 
-  const EXPERIENCE = data.experience
-  const EXPERIENCE_ACHIEVEMENTS = data.achievements
-  const EDUCATION = data.education
-
   return (
     <section id="experience" ref={ref} className="sc-section" style={{ overflow: 'hidden' }}>
       <SectionHeader num="03" title="Experience" />
@@ -191,64 +160,60 @@ export default function Experience() {
         gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
         gap: '1rem',
         marginBottom: 'clamp(2.5rem, 6vw, 3.5rem)',
-        minHeight: loaded ? undefined : 100,
       }}>
-        {EXPERIENCE_ACHIEVEMENTS.map((ach, i) => {
-          const AchIcon = resolveIcon(ach.iconKey)
-          return (
-            <div
-              key={ach._id}
-              style={{
-                background: 'rgba(18, 18, 26, 0.6)',
-                border: '1px solid rgba(255, 255, 255, 0.06)',
-                borderRadius: 16,
-                padding: '1.25rem 1rem',
-                textAlign: 'center',
-                position: 'relative',
-                overflow: 'hidden',
-                opacity: isVisible ? 1 : 0,
-                transform: isVisible ? 'translateY(0)' : 'translateY(30px)',
-                transition: `all 0.6s ease ${i * 0.1}s`,
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-5px)'
-                e.currentTarget.style.borderColor = `${ach.color}40`
-                e.currentTarget.style.boxShadow = `0 20px 40px -15px ${ach.color}30`
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)'
-                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.06)'
-                e.currentTarget.style.boxShadow = 'none'
-              }}
-            >
-              <AchIcon style={{
-                fontSize: 22,
-                color: ach.color,
-                marginBottom: '0.65rem',
-                filter: `drop-shadow(0 0 10px ${ach.color}50)`,
-              }} />
-              <div style={{
-                fontSize: 'clamp(1.35rem, 3vw, 1.75rem)',
-                fontWeight: 800,
-                fontFamily: 'var(--mono)',
-                background: `linear-gradient(135deg, ${ach.color}, ${ach.color}aa)`,
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                marginBottom: '0.2rem',
-              }}>
-                {ach.value}
-              </div>
-              <div style={{
-                fontSize: 11,
-                color: 'var(--text-secondary)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-              }}>
-                {ach.label}
-              </div>
+        {EXPERIENCE_ACHIEVEMENTS.map((ach, i) => (
+          <div
+            key={ach.label}
+            style={{
+              background: 'rgba(18, 18, 26, 0.6)',
+              border: '1px solid rgba(255, 255, 255, 0.06)',
+              borderRadius: 16,
+              padding: '1.25rem 1rem',
+              textAlign: 'center',
+              position: 'relative',
+              overflow: 'hidden',
+              opacity: isVisible ? 1 : 0,
+              transform: isVisible ? 'translateY(0)' : 'translateY(30px)',
+              transition: `all 0.6s ease ${i * 0.1}s`,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-5px)'
+              e.currentTarget.style.borderColor = `${ach.color}40`
+              e.currentTarget.style.boxShadow = `0 20px 40px -15px ${ach.color}30`
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)'
+              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.06)'
+              e.currentTarget.style.boxShadow = 'none'
+            }}
+          >
+            <ach.icon style={{
+              fontSize: 22,
+              color: ach.color,
+              marginBottom: '0.65rem',
+              filter: `drop-shadow(0 0 10px ${ach.color}50)`,
+            }} />
+            <div style={{
+              fontSize: 'clamp(1.35rem, 3vw, 1.75rem)',
+              fontWeight: 800,
+              fontFamily: 'var(--mono)',
+              background: `linear-gradient(135deg, ${ach.color}, ${ach.color}aa)`,
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              marginBottom: '0.2rem',
+            }}>
+              {ach.value}
             </div>
-          )
-        })}
+            <div style={{
+              fontSize: 11,
+              color: 'var(--text-secondary)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
+            }}>
+              {ach.label}
+            </div>
+          </div>
+        ))}
       </div>
 
       <div style={{ position: 'relative', maxWidth: 760, margin: '0 auto' }}>
@@ -266,7 +231,7 @@ export default function Experience() {
         }} />
 
         {EXPERIENCE.map((entry, i) => (
-          <ExperienceCard key={entry._id} entry={entry} index={i} isVisible={isVisible} />
+          <ExperienceCard key={entry.id} entry={entry} index={i} isVisible={isVisible} />
         ))}
       </div>
 
@@ -287,9 +252,9 @@ export default function Experience() {
           Career Journey
         </span>
         <div style={{ display: 'flex', gap: 6 }}>
-          {EXPERIENCE.map((entry) => (
+          {EXPERIENCE.map((entry, i) => (
             <div
-              key={entry._id}
+              key={entry.id}
               style={{
                 width: 8,
                 height: 8,
@@ -332,7 +297,7 @@ export default function Experience() {
           gap: '0.9rem',
         }}>
           {EDUCATION.map((edu) => (
-            <div key={edu._id} className="exp-card" style={{
+            <div key={edu.id} className="exp-card" style={{
               '--exp-accent': '#a855f7',
               display: 'flex',
               gap: 14,

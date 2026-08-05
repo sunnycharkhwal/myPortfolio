@@ -1,11 +1,7 @@
 import { useRef, useEffect, useState } from 'react'
 import SectionHeader from './SectionHeader.jsx'
 import useFadeIn from '../hooks/useFadeIn.js'
-import {
-  CONTACT_SERVICES, CONTACT_FLOATING_ICONS,
-  CONTACT_EMAIL, CONTACT_PHONE, CONTACT_PHONE_DISPLAY,
-  CONTACT_LINKEDIN_URL, CONTACT_LINKEDIN_HANDLE,
-} from '../data/index.js'
+import { CONTACT_SERVICES, CONTACT_FLOATING_ICONS } from '../data/index.js'
 
 export default function Contact() {
   const ref = useRef()
@@ -163,7 +159,7 @@ export default function Contact() {
             transition: 'all 0.7s ease 0.5s',
           }}>
             <a
-              href={`mailto:${CONTACT_EMAIL}`}
+              href="mailto:sunny.charkhwal@gmail.com"
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -194,7 +190,7 @@ export default function Contact() {
               Start a Conversation
             </a>
             <a
-              href={CONTACT_LINKEDIN_URL}
+              href="https://www.linkedin.com/in/sunnycharkhwal"
               target="_blank"
               rel="noopener noreferrer"
               style={{
@@ -332,7 +328,7 @@ export default function Contact() {
       }}>
         
         <a
-          href={`mailto:${CONTACT_EMAIL}`}
+          href="mailto:sunny.charkhwal@gmail.com"
           style={{
             position: 'relative',
             padding: '2rem',
@@ -408,7 +404,7 @@ export default function Contact() {
               Email
             </div>
             <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>
-              {CONTACT_EMAIL}
+              sunny.charkhwal@gmail.com
             </div>
             <div style={{ fontSize: 12, color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: 6 }}>
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#34A853', animation: 'pulse 2s infinite' }} />
@@ -419,7 +415,7 @@ export default function Contact() {
 
         
         <a
-          href={CONTACT_LINKEDIN_URL}
+          href="https://www.linkedin.com/in/sunnycharkhwal"
           target="_blank"
           rel="noopener noreferrer"
           style={{
@@ -507,7 +503,7 @@ export default function Contact() {
               LinkedIn
             </div>
             <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>
-              {CONTACT_LINKEDIN_HANDLE}
+              /in/sunnycharkhwal
             </div>
             <div style={{ fontSize: 12, color: 'var(--muted)' }}>
               500+ Connections • DevOps Network
@@ -517,7 +513,7 @@ export default function Contact() {
 
         
         <a
-          href={`tel:${CONTACT_PHONE}`}
+          href="tel:+919013030173"
           style={{
             position: 'relative',
             padding: '2rem',
@@ -593,7 +589,7 @@ export default function Contact() {
               Phone
             </div>
             <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>
-              {CONTACT_PHONE_DISPLAY}
+              +91 901 303 0173
             </div>
             <div style={{ fontSize: 12, color: 'var(--muted)' }}>
               Available Mon-Fri, 10AM-7PM IST
