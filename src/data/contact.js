@@ -9,6 +9,14 @@ import {
 } from "react-icons/si";
 import { FaAws } from "react-icons/fa";
 
+// Single source of truth for personal contact details — components should
+// import these rather than hardcoding the email/phone/LinkedIn inline.
+export const CONTACT_EMAIL = "sunny.charkhwal@gmail.com";
+export const CONTACT_PHONE = "+919013030173";
+export const CONTACT_PHONE_DISPLAY = "+91 901 303 0173";
+export const CONTACT_LINKEDIN_URL = "https://www.linkedin.com/in/sunnycharkhwal";
+export const CONTACT_LINKEDIN_HANDLE = "/in/sunnycharkhwal";
+
 export const CONTACT_FLOATING_ICONS = [
   { Icon: SiTerraform, color: "#7B42BC", delay: 0 },
   { Icon: FaAws, color: "#FF9900", delay: 0.5 },

@@ -1,0 +1,39 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+# Deploy: Render dashboard → New → Blueprint → connect this repo. Render reads this
+# file automatically and provisions the service below; you'll be prompted to fill in
+# every `sync: false` value by hand (they're secrets/deployment-specific, never
+# committed to git).
+services:
+  - type: web
+    name: sunny-portfolio-api
+    runtime: docker
+    dockerfilePath: ./server/Dockerfile
+    dockerContext: ./server
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Render injects its own PORT automatically — server/src/config/env.js already
+      # reads process.env.PORT first, so nothing to set here.
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: RESET_TOKEN_EXPIRES_MIN
+        value: "15"
+      # Your real Vercel domain(s), comma-separated, e.g.
+      # https://your-app.vercel.app — no trailing slash, no wildcard.
+      - key: CORS_ORIGIN
+        sync: false
+      - key: BREVO_API_KEY
+        sync: false
+      - key: BREVO_SENDER_EMAIL
+        sync: false
+      - key: BREVO_SENDER_NAME
+        sync: false
+      # Same real Vercel domain as CORS_ORIGIN — used to build the password-reset link.
+      - key: FRONTEND_URL
+        sync: false
