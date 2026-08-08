@@ -1,3 +1,4 @@
+{% raw %}
 # Work Log
 
 Running log of changes made in this project via Claude. Keeps the **last 5 entries only**
@@ -248,3 +249,4 @@ static inline styling anywhere in the dashboard.
 **Status:** applied — public site (Hero/Nav/Skills/Projects/Experience/Contact/
 Footer/DevOpsBackground/SectionHeader/BackToTop/DownloadLinkButton) intentionally
 untouched, to be scoped as its own follow-up when you're ready.
+{% endraw %}
