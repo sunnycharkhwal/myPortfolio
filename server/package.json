@@ -10,6 +10,17 @@
     "seed:experience": "node src/scripts/seedExperience.js",
     "seed:projects": "node src/scripts/seedProjects.js",
     "seed:project-categories": "node src/scripts/seedProjectCategories.js",
+    "seed:content-presets": "node src/scripts/seedContentPresets.js",
+    "seed:hero": "node src/scripts/seedHero.js",
+    "seed:skills": "node src/scripts/seedSkills.js",
+    "seed:skills-section": "node src/scripts/seedSkillsSection.js",
+    "seed:contact-services": "node src/scripts/seedContactServices.js",
+    "seed:contact-settings": "node src/scripts/seedContactSettings.js",
+    "seed:footer-links": "node src/scripts/seedFooterLinks.js",
+    "seed:footer-tech-icons": "node src/scripts/seedFooterTechIcons.js",
+    "seed:footer-settings": "node src/scripts/seedFooterSettings.js",
+    "seed:site-settings": "node src/scripts/seedSiteSettings.js",
+    "seed:site-nav-links": "node src/scripts/seedSiteNavLinks.js",
     "cleanup:seed-projects": "node src/scripts/removeSeedProjects.js"
   },
   "dependencies": {
@@ -18,6 +29,7 @@
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "express-rate-limit": "^7.4.1",
+    "helmet": "^8.3.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.7.0"
   },

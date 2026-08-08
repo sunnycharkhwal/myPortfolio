@@ -4,16 +4,6 @@ import TextField from '@mui/material/TextField'
 import Button from '@mui/material/Button'
 import * as authApi from '../api/authApi.js'
 
-const cardStyle = {
-  width: '100%',
-  maxWidth: 400,
-  background: 'linear-gradient(135deg, var(--bg2) 0%, var(--bg3) 100%)',
-  border: '1px solid var(--border)',
-  borderRadius: 20,
-  padding: 'clamp(1.75rem, 5vw, 2.5rem)',
-  boxShadow: '0 30px 60px -20px rgba(0, 0, 0, 0.6)',
-}
-
 const fieldSx = {
   '& .MuiOutlinedInput-root': {
     color: 'var(--text)',
@@ -62,54 +52,25 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '2rem',
-        background: 'var(--bg)',
-      }}
-    >
-      <div style={cardStyle}>
-        <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-          <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text)', marginBottom: 6 }}>
+    <div className="dash-auth-page">
+      <div className="dash-auth-card">
+        <div className="dash-auth-card__header">
+          <h1 className="dash-auth-card__title">
             Reset your password
           </h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: 14 }}>
+          <p className="dash-auth-card__subtitle">
             Enter your account email and we'll send you a reset link.
           </p>
         </div>
 
         {submitted ? (
-          <div
-            style={{
-              padding: '14px 16px',
-              borderRadius: 10,
-              background: 'rgba(16, 185, 129, 0.1)',
-              border: '1px solid rgba(16, 185, 129, 0.3)',
-              color: 'var(--accent-green)',
-              fontSize: 13.5,
-              lineHeight: 1.6,
-            }}
-          >
+          <div className="dash-alert dash-alert--success">
             If that email is registered, a reset link has been sent. Check your inbox.
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
             {error && (
-              <div
-                style={{
-                  marginBottom: '1.25rem',
-                  padding: '10px 14px',
-                  borderRadius: 10,
-                  background: 'rgba(255, 107, 107, 0.1)',
-                  border: '1px solid rgba(255, 107, 107, 0.3)',
-                  color: 'var(--accent-pink)',
-                  fontSize: 13,
-                }}
-              >
+              <div className="dash-alert dash-alert--error">
                 {error}
               </div>
             )}
@@ -128,8 +89,8 @@ export default function ForgotPasswordPage() {
           </form>
         )}
 
-        <div style={{ textAlign: 'center', marginTop: '1.25rem' }}>
-          <Link to="/login" style={{ color: 'var(--text-secondary)', fontSize: 13, textDecoration: 'none' }}>
+        <div className="dash-auth-footer">
+          <Link to="/login" className="dash-auth-footer-link">
             Back to login
           </Link>
         </div>

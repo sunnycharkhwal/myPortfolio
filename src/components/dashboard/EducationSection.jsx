@@ -4,6 +4,7 @@ import Button from '@mui/material/Button'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 import IconButton from '@mui/material/IconButton'
+import Switch from '@mui/material/Switch'
 import { DndContext, closestCenter, PointerSensor, KeyboardSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy, sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 import { fetchEducation, deleteEducationEntry, updateEducationEntry } from '../../store/experienceSectionSlice.js'
@@ -43,6 +44,11 @@ export default function EducationSection() {
     dispatch(addToast({ message: `"${target?.degree || 'Entry'}" deleted`, severity: 'info' }))
     refetch()
   }
+  const handleToggleEnabled = async (item) => {
+    await dispatch(updateEducationEntry({ id: item._id, data: { enabled: !item.enabled } }))
+    dispatch(addToast({ message: `"${item.degree}" ${item.enabled ? 'disabled' : 'enabled'}`, severity: 'info' }))
+    refetch()
+  }
   const handleSaved = (wasEdit, degree) => {
     setModalOpen(false)
     dispatch(addToast({ message: `"${degree}" ${wasEdit ? 'updated' : 'added'}`, severity: 'success' }))
@@ -73,8 +79,8 @@ export default function EducationSection() {
 
   return (
     <section>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-        <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text)' }}>Education</h3>
+      <div className="dash-section-header">
+        <h3 className="dash-section-title">Education</h3>
         <Button
           onClick={handleNew}
           sx={{
@@ -92,39 +98,37 @@ export default function EducationSection() {
       </div>
 
       {status === 'loading' && items.length === 0 ? (
-        <p style={{ color: 'var(--text-secondary)' }}>Loading…</p>
+        <p className="dash-muted-text">Loading…</p>
       ) : items.length === 0 ? (
-        <p style={{ color: 'var(--text-secondary)' }}>No education entries yet.</p>
+        <p className="dash-muted-text">No education entries yet.</p>
       ) : (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={items.map((i) => i._id)} strategy={verticalListSortingStrategy}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <div className="dash-list-column">
               {items.map((entry) => (
                 <SortableItem key={entry._id} id={entry._id}>
                   {(handle) => (
-                    <div
-                      style={{
-                        background: 'linear-gradient(135deg, var(--bg2) 0%, var(--bg3) 100%)',
-                        border: '1px solid var(--border)',
-                        borderRadius: 14,
-                        padding: '1rem 1.25rem',
-                        display: 'flex',
-                        alignItems: 'flex-start',
-                        justifyContent: 'space-between',
-                        gap: 12,
-                      }}
-                    >
+                    <div className="dash-entry-card">
                       <DragHandle {...handle} />
-                      <div style={{ minWidth: 0, flex: 1 }}>
-                        <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', marginBottom: 2 }}>
+                      <div className="dash-entry-card__body">
+                        <div className="dash-entry-card__degree">
                           {entry.degree}
                         </div>
-                        <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{entry.field}</div>
-                        <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 4 }}>
+                        <div className="dash-entry-card__field">{entry.field}</div>
+                        <div className="dash-entry-card__institution">
                           {entry.institution} · {entry.location} · {entry.period}
                         </div>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
+                      <div className="dash-entry-card__actions">
+                        {entry.enabled === false && (
+                          <span className="dash-entry-card__disabled-tag">(disabled)</span>
+                        )}
+                        <Switch
+                          checked={entry.enabled !== false}
+                          onChange={() => handleToggleEnabled(entry)}
+                          size="small"
+                          sx={{ '& .MuiSwitch-switchBase.Mui-checked': { color: 'var(--accent)' } }}
+                        />
                         <IconButton size="small" onClick={() => handleEdit(entry)} sx={{ color: 'var(--text-secondary)' }}>
                           <EditIcon fontSize="small" />
                         </IconButton>

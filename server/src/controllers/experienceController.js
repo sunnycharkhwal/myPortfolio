@@ -27,6 +27,7 @@ function pickExperienceFields(body) {
   if (body.current !== undefined) fields.current = Boolean(body.current)
   if (body.tech !== undefined) fields.tech = pickTechRows(body.tech)
   if (body.order !== undefined) fields.order = Number(body.order) || 0
+  if (body.enabled !== undefined) fields.enabled = Boolean(body.enabled)
   return fields
 }
 

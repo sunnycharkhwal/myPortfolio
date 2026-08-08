@@ -9,6 +9,7 @@ function pickAchievementFields(body) {
   if (body.label !== undefined) fields.label = String(body.label).trim()
   if (body.color !== undefined) fields.color = String(body.color).trim()
   if (body.order !== undefined) fields.order = Number(body.order) || 0
+  if (body.enabled !== undefined) fields.enabled = Boolean(body.enabled)
   return fields
 }
 

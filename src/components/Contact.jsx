@@ -1,16 +1,67 @@
 import { useRef, useEffect, useState } from 'react'
 import SectionHeader from './SectionHeader.jsx'
 import useFadeIn from '../hooks/useFadeIn.js'
-import {
-  CONTACT_SERVICES, CONTACT_FLOATING_ICONS,
-  CONTACT_EMAIL, CONTACT_PHONE, CONTACT_PHONE_DISPLAY,
-  CONTACT_LINKEDIN_URL, CONTACT_LINKEDIN_HANDLE,
-} from '../data/index.js'
+import useSectionHeading from '../hooks/useSectionHeading.js'
+import { CONTACT_FLOATING_ICONS } from '../data/index.js'
+import { listContactServices } from '../api/contactServicesApi.js'
+import { getContactSettings } from '../api/contactSettingsApi.js'
+
+// The card's top hairline gradient only ever needs one accent color per service —
+// derived here from the admin-set `color` instead of a stored second "gradient" field,
+// same single-color-field convention Skills.jsx's categoryGradient already uses.
+function serviceGradient(color) {
+  return `linear-gradient(135deg, ${color} 0%, ${color}99 100%)`
+}
+
+// Fails open to this exact copy (not blank) both before the fetch resolves and if it
+// ever fails — same "briefly the old hardcoded content beats briefly blank" precedent
+// Hero.jsx's DEFAULT_HERO/Skills.jsx's DEFAULT_SECTION use.
+const DEFAULT_SETTINGS = {
+  email: 'sunny.charkhwal@gmail.com',
+  phone: '+919013030173',
+  phoneDisplay: '+91 901 303 0173',
+  linkedinUrl: 'https://www.linkedin.com/in/sunnycharkhwal',
+  linkedinHandle: '/in/sunnycharkhwal',
+}
 
 export default function Contact() {
   const ref = useRef()
   const [isVisible, setIsVisible] = useState(false)
   useFadeIn(ref)
+  const heading = useSectionHeading('contact', { num: '04', title: 'Get In Touch' })
+
+  // Public content fetched live from the database — no Redux for the data itself, same
+  // self-contained fetch pattern as Skills.jsx/Projects.jsx. Fails open to an empty
+  // array (services) / DEFAULT_SETTINGS (email/phone/LinkedIn) on error rather than
+  // crashing the page; disabled services are filtered out client-side, same
+  // `enabled !== false` convention used everywhere else.
+  const [rawServices, setRawServices] = useState([])
+  const [settings, setSettings] = useState(DEFAULT_SETTINGS)
+
+  useEffect(() => {
+    let cancelled = false
+    Promise.all([listContactServices(), getContactSettings()])
+      .then(([servicesData, settingsData]) => {
+        if (cancelled) return
+        setRawServices(servicesData)
+        if (settingsData && Object.keys(settingsData).length > 0) {
+          setSettings((prev) => ({ ...prev, ...settingsData }))
+        }
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const CONTACT_SERVICES = rawServices
+    .filter((s) => s.enabled !== false)
+    .map((s) => ({ ...s, gradient: serviceGradient(s.color) }))
+  const CONTACT_EMAIL = settings.email
+  const CONTACT_PHONE = settings.phone
+  const CONTACT_PHONE_DISPLAY = settings.phoneDisplay
+  const CONTACT_LINKEDIN_URL = settings.linkedinUrl
+  const CONTACT_LINKEDIN_HANDLE = settings.linkedinHandle
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -27,7 +78,7 @@ export default function Contact() {
 
   return (
     <section id="contact" ref={ref} className="sc-section" style={{ overflow: 'hidden' }}>
-      <SectionHeader num="04" title="Get In Touch" />
+      <SectionHeader num={heading.num} title={heading.title} />
 
       
       <div style={{

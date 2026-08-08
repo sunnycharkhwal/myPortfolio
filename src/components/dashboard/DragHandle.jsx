@@ -9,20 +9,7 @@ export default function DragHandle({ setActivatorNodeRef, attributes, listeners 
       {...attributes}
       {...listeners}
       aria-label="Drag to reorder"
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: 28,
-        height: 28,
-        background: 'none',
-        border: 'none',
-        borderRadius: 6,
-        color: 'var(--muted)',
-        cursor: 'grab',
-        flexShrink: 0,
-        touchAction: 'none',
-      }}
+      className="dash-drag-handle"
     >
       <DragIndicatorIcon fontSize="small" />
     </button>

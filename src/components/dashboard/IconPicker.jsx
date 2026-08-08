@@ -23,8 +23,8 @@ export default function IconPicker({ value, onChange, label = 'Icon' }) {
         const Icon = resolveIcon(key)
         return (
           <MenuItem key={key} value={key}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-              <Icon style={{ fontSize: 14 }} />
+            <span className="dash-icon-option">
+              <Icon className="dash-icon-option__icon" />
               {key}
             </span>
           </MenuItem>

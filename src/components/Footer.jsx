@@ -1,25 +1,105 @@
 import { useState, useEffect } from 'react'
 import { FaHeart, FaMapMarkerAlt, FaTerminal } from 'react-icons/fa'
-import { FiArrowUp } from 'react-icons/fi'
-import { FOOTER_QUICK_LINKS, FOOTER_SOCIAL_LINKS, FOOTER_TECH_STACK } from '../data/index.js'
+import { FiArrowUp, FiGithub, FiLinkedin, FiMail } from 'react-icons/fi'
+import { getContactSettings } from '../api/contactSettingsApi.js'
+import { listFooterLinks } from '../api/footerLinksApi.js'
+import { listFooterTechIcons } from '../api/footerTechIconsApi.js'
+import { getFooterSettings } from '../api/footerSettingsApi.js'
+import { resolveIcon } from '../utils/iconRegistry.js'
+
+// Fails open to this exact copy (not blank) both before the fetch resolves and if it
+// ever fails — same precedent as Contact.jsx's own DEFAULT_SETTINGS (this is
+// deliberately NOT shared code with Contact.jsx — two independent, self-contained
+// public sections, same "no Redux for public content" convention every other section
+// already follows, just both fetching the same underlying ContactSettings singleton).
+const DEFAULT_CONTACT_SETTINGS = {
+  email: 'sunny.charkhwal@gmail.com',
+  linkedinUrl: 'https://www.linkedin.com/in/sunnycharkhwal',
+  githubUrl: 'https://github.com/sunnycharkhwal',
+  location: 'New Delhi, India',
+}
+const DEFAULT_FOOTER_LINKS = [
+  { _id: 'hero', label: 'Home', href: '#hero' },
+  { _id: 'skills', label: 'Skills', href: '#skills' },
+  { _id: 'projects', label: 'Projects', href: '#projects' },
+  { _id: 'experience', label: 'Experience', href: '#experience' },
+  { _id: 'contact', label: 'Contact', href: '#contact' },
+]
+const DEFAULT_FOOTER_TECH_ICONS = [
+  { iconKey: 'SiDocker', color: '#2496ED' },
+  { iconKey: 'SiKubernetes', color: '#326CE5' },
+  { iconKey: 'SiTerraform', color: '#7B42BC' },
+  { iconKey: 'FaAws', color: '#FF9900' },
+  { iconKey: 'SiJenkins', color: '#D24939' },
+  { iconKey: 'SiPrometheus', color: '#E6522C' },
+]
+const DEFAULT_FOOTER_SETTINGS = {
+  brandName: 'Sunny Charkhwal',
+  brandRole: 'DevOps Engineer',
+  bio: 'Building scalable infrastructure and automating everything. Passionate about CI/CD, cloud-native technologies, and DevSecOps.',
+  terminalCommand: 'echo "Thanks for visiting!"',
+}
 
 export default function Footer() {
   const [command, setCommand] = useState('')
   const [showCursor, setShowCursor] = useState(true)
-  const fullCommand = 'echo "Thanks for visiting!"'
-  
+  const [contactSettings, setContactSettings] = useState(DEFAULT_CONTACT_SETTINGS)
+  // Public content fetched live from the database — no Redux for the data itself, same
+  // self-contained fetch pattern as Skills.jsx/Projects.jsx. Fails open to the defaults
+  // above on error rather than crashing the page; disabled links/icons are filtered out
+  // client-side, same `enabled !== false` convention used everywhere else.
+  const [rawLinks, setRawLinks] = useState(DEFAULT_FOOTER_LINKS)
+  const [rawTechIcons, setRawTechIcons] = useState(DEFAULT_FOOTER_TECH_ICONS)
+  const [footerSettings, setFooterSettings] = useState(DEFAULT_FOOTER_SETTINGS)
+
+  useEffect(() => {
+    let cancelled = false
+    Promise.all([getContactSettings(), listFooterLinks(), listFooterTechIcons(), getFooterSettings()])
+      .then(([contactData, linksData, techIconsData, footerData]) => {
+        if (cancelled) return
+        if (contactData && Object.keys(contactData).length > 0) {
+          setContactSettings((prev) => ({ ...prev, ...contactData }))
+        }
+        // Always replace (even with an empty array) — unlike the singletons above,
+        // an empty list here is a legitimate "the admin deleted everything" state,
+        // not "nothing saved yet", so it must not stay pinned to the hardcoded defaults.
+        if (Array.isArray(linksData)) setRawLinks(linksData)
+        if (Array.isArray(techIconsData)) setRawTechIcons(techIconsData)
+        if (footerData && Object.keys(footerData).length > 0) {
+          setFooterSettings((prev) => ({ ...prev, ...footerData }))
+        }
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  // Built here (not a static data/footer.js export) since the hrefs are now live —
+  // same Icon+href+label shape the old FOOTER_SOCIAL_LINKS constant had.
+  const socialLinks = [
+    { Icon: FiGithub, href: contactSettings.githubUrl, label: 'GitHub' },
+    { Icon: FiLinkedin, href: contactSettings.linkedinUrl, label: 'LinkedIn' },
+    { Icon: FiMail, href: `mailto:${contactSettings.email}`, label: 'Email' },
+  ].filter((link) => link.href)
+
+  const quickLinks = rawLinks.filter((l) => l.enabled !== false)
+  const techIcons = rawTechIcons
+    .filter((t) => t.enabled !== false)
+    .map((t) => ({ Icon: resolveIcon(t.iconKey), color: t.color }))
+
   useEffect(() => {
     let i = 0
     const typeInterval = setInterval(() => {
-      if (i < fullCommand.length) {
-        setCommand(fullCommand.slice(0, i + 1))
+      if (i < footerSettings.terminalCommand.length) {
+        setCommand(footerSettings.terminalCommand.slice(0, i + 1))
         i++
       } else {
         clearInterval(typeInterval)
       }
     }, 100)
     return () => clearInterval(typeInterval)
-  }, [])
+  }, [footerSettings.terminalCommand])
 
   useEffect(() => {
     const cursorInterval = setInterval(() => {
@@ -99,26 +179,25 @@ export default function Footer() {
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                 }}>
-                  Sunny Charkhwal
+                  {footerSettings.brandName}
                 </div>
-                <div style={{ 
-                  fontSize: 12, 
+                <div style={{
+                  fontSize: 12,
                   color: 'var(--muted)',
                   fontFamily: 'var(--mono)',
                 }}>
-                  DevOps Engineer
+                  {footerSettings.brandRole}
                 </div>
               </div>
             </div>
-            
+
             <p style={{
               fontSize: 'clamp(13px, 2vw, 14px)',
               color: 'var(--text-secondary)',
               lineHeight: 1.7,
               marginBottom: '1.5rem',
             }}>
-              Building scalable infrastructure and automating everything. 
-              Passionate about CI/CD, cloud-native technologies, and DevSecOps.
+              {footerSettings.bio}
             </p>
 
             <div style={{
@@ -129,7 +208,7 @@ export default function Footer() {
               color: 'var(--muted)',
             }}>
               <FaMapMarkerAlt style={{ color: 'var(--accent-pink)' }} />
-              <span>New Delhi, India</span>
+              <span>{contactSettings.location}</span>
             </div>
           </div>
 
@@ -145,7 +224,7 @@ export default function Footer() {
               Quick Links
             </h4>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-              {FOOTER_QUICK_LINKS.map(link => (
+              {quickLinks.map(link => (
                 <li key={link.label} style={{ marginBottom: 12 }}>
                   <a 
                     href={link.href}
@@ -196,7 +275,7 @@ export default function Footer() {
               gap: 12,
               marginBottom: '1.5rem',
             }}>
-              {FOOTER_SOCIAL_LINKS.map(({ Icon, href, label }) => (
+              {socialLinks.map(({ Icon, href, label }) => (
                 <a
                   key={label}
                   href={href}
@@ -266,7 +345,7 @@ export default function Footer() {
         }}>
           <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
           <div style={{ display: 'flex', gap: 'clamp(10px, 2vw, 16px)' }}>
-            {FOOTER_TECH_STACK.map(({ Icon, color }, i) => (
+            {techIcons.map(({ Icon, color }, i) => (
               <Icon 
                 key={i} 
                 style={{ 
@@ -302,7 +381,7 @@ export default function Footer() {
             fontSize: 'clamp(11px, 1.5vw, 13px)', 
             color: 'var(--muted)',
           }}>
-            © {currentYear} Sunny Charkhwal
+            © {currentYear} {footerSettings.brandName}
           </div>
 
           <div style={{

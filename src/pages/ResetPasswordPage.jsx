@@ -8,16 +8,6 @@ const PASSWORD_POLICY_MESSAGE =
   'Password must be at least 8 characters and include at least one letter and one number.'
 const PASSWORD_RE = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/
 
-const cardStyle = {
-  width: '100%',
-  maxWidth: 400,
-  background: 'linear-gradient(135deg, var(--bg2) 0%, var(--bg3) 100%)',
-  border: '1px solid var(--border)',
-  borderRadius: 20,
-  padding: 'clamp(1.75rem, 5vw, 2.5rem)',
-  boxShadow: '0 30px 60px -20px rgba(0, 0, 0, 0.6)',
-}
-
 const fieldSx = {
   '& .MuiOutlinedInput-root': {
     color: 'var(--text)',
@@ -55,31 +45,12 @@ export default function ResetPasswordPage() {
 
   if (!token) {
     return (
-      <div
-        style={{
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '2rem',
-          background: 'var(--bg)',
-        }}
-      >
-        <div style={cardStyle}>
-          <div
-            style={{
-              padding: '14px 16px',
-              borderRadius: 10,
-              background: 'rgba(255, 107, 107, 0.1)',
-              border: '1px solid rgba(255, 107, 107, 0.3)',
-              color: 'var(--accent-pink)',
-              fontSize: 13.5,
-              marginBottom: '1.25rem',
-            }}
-          >
+      <div className="dash-auth-page">
+        <div className="dash-auth-card">
+          <div className="dash-alert dash-alert--error">
             This reset link is missing its token. Request a new one.
           </div>
-          <Link to="/forgot-password" style={{ color: 'var(--accent)', fontSize: 13 }}>
+          <Link to="/forgot-password" className="dash-auth-footer-link dash-auth-footer-link--accent">
             Request a new reset link
           </Link>
         </div>
@@ -114,41 +85,22 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '2rem',
-        background: 'var(--bg)',
-      }}
-    >
-      <form onSubmit={handleSubmit} style={cardStyle}>
-        <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-          <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text)', marginBottom: 6 }}>
+    <div className="dash-auth-page">
+      <form onSubmit={handleSubmit} className="dash-auth-card">
+        <div className="dash-auth-card__header">
+          <h1 className="dash-auth-card__title">
             Set a new password
           </h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: 13 }}>{PASSWORD_POLICY_MESSAGE}</p>
+          <p className="dash-auth-card__subtitle">{PASSWORD_POLICY_MESSAGE}</p>
         </div>
 
         {error && (
-          <div
-            style={{
-              marginBottom: '1.25rem',
-              padding: '10px 14px',
-              borderRadius: 10,
-              background: 'rgba(255, 107, 107, 0.1)',
-              border: '1px solid rgba(255, 107, 107, 0.3)',
-              color: 'var(--accent-pink)',
-              fontSize: 13,
-            }}
-          >
+          <div className="dash-alert dash-alert--error">
             {error}
           </div>
         )}
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
+        <div className="dash-field-group">
           <TextField
             label="New password"
             type="password"

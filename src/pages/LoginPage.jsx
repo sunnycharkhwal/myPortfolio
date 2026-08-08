@@ -3,17 +3,11 @@ import { useDispatch, useSelector } from 'react-redux'
 import { Link, Navigate, useSearchParams } from 'react-router-dom'
 import TextField from '@mui/material/TextField'
 import Button from '@mui/material/Button'
+import IconButton from '@mui/material/IconButton'
+import InputAdornment from '@mui/material/InputAdornment'
+import VisibilityIcon from '@mui/icons-material/Visibility'
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
 import { login } from '../store/authSlice.js'
-
-const cardStyle = {
-  width: '100%',
-  maxWidth: 400,
-  background: 'linear-gradient(135deg, var(--bg2) 0%, var(--bg3) 100%)',
-  border: '1px solid var(--border)',
-  borderRadius: 20,
-  padding: 'clamp(1.75rem, 5vw, 2.5rem)',
-  boxShadow: '0 30px 60px -20px rgba(0, 0, 0, 0.6)',
-}
 
 const fieldSx = {
   '& .MuiOutlinedInput-root': {
@@ -42,6 +36,7 @@ export default function LoginPage() {
   const { token, user, bootstrapped, status, error } = useSelector((s) => s.auth)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
 
   useEffect(() => {
     document.title = 'Login | Sunny Charkhwal'
@@ -59,68 +54,32 @@ export default function LoginPage() {
   }
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '2rem',
-        background: 'var(--bg)',
-      }}
-    >
-      <form onSubmit={handleSubmit} style={cardStyle}>
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <div
-            style={{
-              fontFamily: 'var(--mono)',
-              fontSize: 24,
-              fontWeight: 700,
-              marginBottom: 8,
-            }}
-          >
-            <span style={{ color: 'var(--accent)' }}>S</span>
-            <span style={{ color: 'var(--accent-purple)' }}>C</span>
-            <span style={{ color: 'var(--muted)' }}>:</span>
-            <span style={{ color: 'var(--accent-green)' }}>//</span>
-            <span style={{ color: 'var(--text)' }}>dashboard</span>
+    <div className="dash-auth-page">
+      <form onSubmit={handleSubmit} className="dash-auth-card">
+        <div className="dash-auth-card__header">
+          <div className="dash-logo">
+            <span className="dash-logo__s">S</span>
+            <span className="dash-logo__c">C</span>
+            <span className="dash-logo__colon">:</span>
+            <span className="dash-logo__slash">//</span>
+            <span className="dash-logo__label">dashboard</span>
           </div>
-          <p style={{ color: 'var(--text-secondary)', fontSize: 14 }}>Sign in to continue</p>
+          <p className="dash-auth-card__subtitle">Sign in to continue</p>
         </div>
 
         {searchParams.get('reset') === 'success' && (
-          <div
-            style={{
-              marginBottom: '1.25rem',
-              padding: '10px 14px',
-              borderRadius: 10,
-              background: 'rgba(16, 185, 129, 0.1)',
-              border: '1px solid rgba(16, 185, 129, 0.3)',
-              color: 'var(--accent-green)',
-              fontSize: 13,
-            }}
-          >
+          <div className="dash-alert dash-alert--success">
             Password reset — please log in with your new password.
           </div>
         )}
 
         {status === 'failed' && error && (
-          <div
-            style={{
-              marginBottom: '1.25rem',
-              padding: '10px 14px',
-              borderRadius: 10,
-              background: 'rgba(255, 107, 107, 0.1)',
-              border: '1px solid rgba(255, 107, 107, 0.3)',
-              color: 'var(--accent-pink)',
-              fontSize: 13,
-            }}
-          >
+          <div className="dash-alert dash-alert--error">
             {error}
           </div>
         )}
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
+        <div className="dash-field-group">
           <TextField
             label="Email"
             type="email"
@@ -132,12 +91,33 @@ export default function LoginPage() {
           />
           <TextField
             label="Password"
-            type="password"
+            type={showPassword ? 'text' : 'password'}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
             fullWidth
             sx={fieldSx}
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      // type="button" (not the native <button> default of "submit" inside
+                      // a <form>) stops this from submitting the login form; preventing
+                      // mousedown's default keeps focus on the field instead of stealing it.
+                      onMouseDown={(e) => e.preventDefault()}
+                      edge="end"
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      sx={{ color: 'var(--text-secondary)' }}
+                    >
+                      {showPassword ? <VisibilityOffIcon fontSize="small" /> : <VisibilityIcon fontSize="small" />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              },
+            }}
           />
         </div>
 
@@ -145,11 +125,8 @@ export default function LoginPage() {
           {status === 'loading' ? 'Signing in…' : 'Sign in'}
         </Button>
 
-        <div style={{ textAlign: 'center', marginTop: '1.25rem' }}>
-          <Link
-            to="/forgot-password"
-            style={{ color: 'var(--text-secondary)', fontSize: 13, textDecoration: 'none' }}
-          >
+        <div className="dash-auth-footer">
+          <Link to="/forgot-password" className="dash-auth-footer-link">
             Forgot password?
           </Link>
         </div>

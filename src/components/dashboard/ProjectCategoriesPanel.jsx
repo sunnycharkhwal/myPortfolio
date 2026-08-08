@@ -18,8 +18,8 @@ import ConfirmDialog from './ConfirmDialog.jsx'
 
 // Admin-manageable taxonomy: groups (Frontend/DevOps-style top-level tabs) each with
 // their own sub-categories nested underneath. One flat fetch (fetchAllProjectCategories,
-// enabled + disabled) split client-side by `parent` — same "load everything once, derive
-// views locally" approach as ProjectsPanel.jsx.
+// enabled + disabled) split client-side by `parent` — same "load everything once,
+// derive views locally" approach as ProjectsPanel.jsx.
 export default function ProjectCategoriesPanel() {
   const dispatch = useDispatch()
   const { items, status } = useSelector((s) => s.projectCategories)
@@ -94,20 +94,10 @@ export default function ProjectCategoriesPanel() {
     refetch()
   }
 
-  const rowSx = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 10,
-    padding: '0.6rem 0.9rem',
-    borderRadius: 10,
-    border: '1px solid var(--border)',
-    background: 'rgba(255,255,255,0.02)',
-  }
-
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>Project Taxonomy</h3>
+      <div className="dash-taxonomy-header">
+        <h3 className="dash-taxonomy-title">Project Taxonomy</h3>
         <Button
           onClick={openNewGroup}
           startIcon={<AddIcon fontSize="small" />}
@@ -127,23 +117,21 @@ export default function ProjectCategoriesPanel() {
       </div>
 
       {status === 'loading' && items.length === 0 ? (
-        <p style={{ color: 'var(--text-secondary)' }}>Loading…</p>
+        <p className="dash-muted-text">Loading…</p>
       ) : groups.length === 0 ? (
-        <p style={{ color: 'var(--text-secondary)' }}>No groups yet.</p>
+        <p className="dash-muted-text">No groups yet.</p>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div className="dash-group-list">
           {groups.map((group) => {
             const GroupIcon = resolveIcon(group.iconKey)
             const children = childrenOf(group._id)
             return (
-              <div key={group._id} style={{ border: '1px solid var(--border)', borderRadius: 14, padding: '0.9rem 1rem', background: 'linear-gradient(135deg, var(--bg2) 0%, var(--bg3) 100%)' }}>
-                <div style={rowSx}>
-                  <span style={{ width: 10, height: 10, borderRadius: '50%', background: group.color, flexShrink: 0 }} />
-                  <GroupIcon style={{ fontSize: 15, color: group.color }} />
-                  <span style={{ fontWeight: 700, fontSize: 14, color: 'var(--text)', flex: 1 }}>{group.label}</span>
-                  {!group.enabled && (
-                    <span style={{ fontSize: 10.5, color: 'var(--muted)', fontStyle: 'italic' }}>(disabled)</span>
-                  )}
+              <div key={group._id} className="dash-group-card">
+                <div className="dash-taxonomy-row">
+                  <span className="dash-taxonomy-dot" style={{ '--dot-color': group.color }} />
+                  <GroupIcon className="dash-taxonomy-icon" style={{ '--icon-color': group.color }} />
+                  <span className="dash-taxonomy-label dash-taxonomy-label--group">{group.label}</span>
+                  {!group.enabled && <span className="dash-disabled-tag">(disabled)</span>}
                   <Switch
                     checked={group.enabled}
                     onChange={() => handleToggleEnabled(group)}
@@ -158,17 +146,15 @@ export default function ProjectCategoriesPanel() {
                   </IconButton>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 10, paddingLeft: 20 }}>
+                <div className="dash-group-card__children">
                   {children.map((cat) => {
                     const CatIcon = resolveIcon(cat.iconKey)
                     return (
-                      <div key={cat._id} style={rowSx}>
-                        <span style={{ width: 8, height: 8, borderRadius: '50%', background: cat.color, flexShrink: 0 }} />
-                        <CatIcon style={{ fontSize: 13, color: cat.color }} />
-                        <span style={{ fontSize: 13, color: 'var(--text)', flex: 1 }}>{cat.label}</span>
-                        {!cat.enabled && (
-                          <span style={{ fontSize: 10.5, color: 'var(--muted)', fontStyle: 'italic' }}>(disabled)</span>
-                        )}
+                      <div key={cat._id} className="dash-taxonomy-row">
+                        <span className="dash-taxonomy-dot dash-taxonomy-dot--sm" style={{ '--dot-color': cat.color }} />
+                        <CatIcon className="dash-taxonomy-icon dash-taxonomy-icon--sm" style={{ '--icon-color': cat.color }} />
+                        <span className="dash-taxonomy-label dash-taxonomy-label--sub">{cat.label}</span>
+                        {!cat.enabled && <span className="dash-disabled-tag">(disabled)</span>}
                         <Switch
                           checked={cat.enabled}
                           onChange={() => handleToggleEnabled(cat)}
@@ -184,21 +170,7 @@ export default function ProjectCategoriesPanel() {
                       </div>
                     )
                   })}
-                  <button
-                    type="button"
-                    onClick={() => openNewSubcategory(group)}
-                    style={{
-                      marginTop: 2,
-                      background: 'none',
-                      border: '1px dashed var(--border)',
-                      borderRadius: 8,
-                      padding: '6px 12px',
-                      color: 'var(--accent)',
-                      fontSize: 12,
-                      cursor: 'pointer',
-                      alignSelf: 'flex-start',
-                    }}
-                  >
+                  <button type="button" onClick={() => openNewSubcategory(group)} className="dash-add-subcategory-btn">
                     + Add sub-category
                   </button>
                 </div>

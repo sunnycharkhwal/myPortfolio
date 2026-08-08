@@ -1,7 +1,1411 @@
-// Dashboard-specific hover/pseudo-class rules that inline styles can't express —
-// everything else about the dashboard's look is inline style={{}} using the same
-// CSS custom properties as the rest of the app, per the existing codebase convention.
+// All dashboard component styling — one section per component, in the same order
+// they were converted off inline `style={{}}` (see WORK_LOG.md). Static styles became
+// plain classes below; styles that generated a value from component state/props
+// (colors, computed positions, conditional booleans) use a CSS custom property set via
+// a *minimal* inline `style={{ '--x': value }}` consumed here with `var(--x)` — the
+// same pattern src/components/DevOpsBackground.jsx/Hero.jsx already used for their
+// public-site orbit/particle animations. A boolean state (active/disabled/etc.) is a
+// conditional class, not a custom property. Genuinely per-frame dynamic values with no
+// static equivalent (dnd-kit's live drag transform in SortableItem.jsx) are the one
+// justified exception and stay inline — noted inline in that file.
 
+// ── DashboardPage.jsx ───────────────────────────────────────────────────────
+.dashboard-page {
+  min-height: 100vh;
+  background: var(--bg);
+}
 .dashboard-page table tbody tr:hover {
   background: rgba(255, 255, 255, 0.02);
+}
+
+// Shared top-level panel padding — ExperiencePanel.jsx, ProjectsPanel.jsx, and
+// HeroPanel.jsx all wrapped their content in this exact same padding.
+.dash-panel {
+  padding: clamp(1.25rem, 4vw, 2rem);
+}
+
+// ── ConfirmDialog.jsx ───────────────────────────────────────────────────────
+.dash-confirm {
+  padding: 1.75rem;
+}
+.dash-confirm__title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.6rem;
+}
+.dash-confirm__message {
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+.dash-confirm__actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+// ── ToastContainer.jsx ──────────────────────────────────────────────────────
+.dash-toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+.dash-toast-container__item {
+  pointer-events: auto;
+}
+.dash-toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(25, 25, 35, 0.98) 0%, rgba(15, 15, 22, 0.99) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.6);
+  min-width: 260px;
+  max-width: 340px;
+  animation: dash-toast-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.dash-toast__icon {
+  font-size: 18px;
+  color: var(--toast-icon-color);
+  flex-shrink: 0;
+}
+.dash-toast__message {
+  font-size: 13px;
+  color: var(--text);
+  flex: 1;
+  line-height: 1.4;
+}
+@keyframes dash-toast-in {
+  from { opacity: 0; transform: translateX(24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+// ── Shared "SC://" logo mark ────────────────────────────────────────────────
+// Same colored-letter pattern DashboardTopbar.jsx and the auth pages (LoginPage,
+// ForgotPasswordPage, ResetPasswordPage) all render identically.
+.dash-logo {
+  font-family: var(--mono);
+  font-weight: 700;
+}
+.dash-logo__s { color: var(--accent); }
+.dash-logo__c { color: var(--accent-purple); }
+.dash-logo__colon { color: var(--muted); }
+.dash-logo__slash { color: var(--accent-green); }
+.dash-logo__label { color: var(--text); }
+
+// ── DashboardTopbar.jsx ─────────────────────────────────────────────────────
+.dash-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem clamp(1rem, 4vw, 2rem);
+  border-bottom: 1px solid var(--border);
+  background: rgba(18, 18, 26, 0.6);
+
+  .dash-logo { font-size: 20px; }
+}
+.dash-topbar__tabs {
+  display: flex;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 50px;
+  padding: 4px;
+}
+.dash-topbar__tab {
+  padding: 8px 18px;
+  border-radius: 30px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+
+  &.active {
+    background: linear-gradient(135deg, rgba(0, 212, 255, 0.15) 0%, rgba(168, 85, 247, 0.1) 100%);
+    color: var(--accent);
+    font-weight: 600;
+  }
+}
+.dash-topbar__logout {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+// ── Shared alert banner ─────────────────────────────────────────────────────
+// The exact same "local form error" / "success" banner markup was copy-pasted across
+// every auth page (Login/ForgotPassword/ResetPassword) and every dashboard form modal
+// (Project/WorkHistory/Achievement/Education/ContentPreset/ProjectCategory) — one
+// shared pair of classes instead of N identical inline style objects.
+.dash-alert {
+  margin-bottom: 1.25rem;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+}
+.dash-alert--error {
+  background: rgba(255, 107, 107, 0.1);
+  border: 1px solid rgba(255, 107, 107, 0.3);
+  color: var(--accent-pink);
+}
+.dash-alert--success {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: var(--accent-green);
+}
+
+// ── Shared auth-page chrome (LoginPage/ForgotPasswordPage/ResetPasswordPage) ──
+.dash-auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: var(--bg);
+}
+.dash-auth-card {
+  width: 100%;
+  max-width: 400px;
+  background: linear-gradient(135deg, var(--bg2) 0%, var(--bg3) 100%);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: clamp(1.75rem, 5vw, 2.5rem);
+  box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.6);
+  position: relative;
+}
+.dash-auth-card__header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+.dash-auth-card__title {
+  color: var(--text);
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.dash-auth-card__subtitle {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+.dash-auth-card .dash-logo {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+.dash-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.dash-auth-footer {
+  text-align: center;
+  margin-top: 1.25rem;
+}
+.dash-auth-footer-link {
+  color: var(--text-secondary);
+  font-size: 13px;
+  text-decoration: none;
+
+  &.dash-auth-footer-link--accent {
+    color: var(--accent);
+  }
+}
+
+// ── Shared form-modal chrome ────────────────────────────────────────────────
+// AchievementFormModal / EducationFormModal / WorkHistoryFormModal /
+// ContentPresetFormModal / ProjectCategoryFormModal / ProjectFormModal all wrap a
+// MUI Dialog with this exact same gradient hairline + padded scrollable form + title.
+.dash-modal-hairline {
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.5), rgba(168, 85, 247, 0.5), transparent);
+}
+.dash-modal-form {
+  padding: 2.25rem 2rem 2rem;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+.dash-modal-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 1.5rem;
+
+  // ContentPresetFormModal/ProjectCategoryFormModal use a slightly smaller title
+  // (these are simpler, narrower "xs" dialogs vs. the "sm" project/experience ones).
+  &.dash-modal-title--sm {
+    font-size: 1.2rem;
+  }
+  // ProjectCategoryFormModal follows its title with either a "Under: X" subtitle or a
+  // spacer div, both handling the gap themselves — the title's own margin would double up.
+  &.dash-modal-title--tight {
+    margin-bottom: 0.3rem;
+  }
+}
+.dash-field-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+// Repeats in every form modal's Enabled-switch `label` prop.
+.dash-switch-label {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+
+  // ProjectCategoryFormModal's Enabled label is a touch larger than the rest.
+  &.dash-switch-label--md {
+    font-size: 13px;
+  }
+}
+
+// Repeats wherever a color TextField has a live preview swatch next to it (Achievement/
+// WorkHistory/ProjectCategory forms, HeroPanel's stat & tech rows) — `color` is
+// necessarily dynamic (arbitrary admin-entered hex), passed as a custom property
+// rather than a full inline style object.
+.dash-color-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.dash-color-swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--swatch-color);
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+// Repeatable-row editor pattern — ProjectFormModal (steps/downloads/images),
+// WorkHistoryFormModal (tech), HeroPanel (roles/stats/tech), ContentPresetsPanel.
+// One sub-heading + a column of rows + a dashed "+ Add …" button underneath.
+.dash-section-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+.dash-row-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.dash-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+
+  // Rows containing a multi-line field (a RichTextEditor or multiline TextField)
+  // align to the top instead of centering, so the trailing delete icon doesn't float
+  // in the middle of a tall field.
+  &.dash-row--top {
+    align-items: flex-start;
+  }
+}
+.dash-add-row-btn {
+  margin-top: 10px;
+  background: none;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  padding: 8px 14px;
+  color: var(--accent);
+  font-size: 12.5px;
+  cursor: pointer;
+  width: 100%;
+
+  // ProjectFormModal pairs "+ Add step"/"+ Add outcome" next to a "+ Add from
+  // library" select on the same row — flex: 1 lets them share the row evenly instead
+  // of the button claiming the full width.
+  &.dash-add-row-btn--inline {
+    width: auto;
+    flex: 1;
+    margin-top: 0;
+  }
+}
+
+// Flex-basis utility widths — the handful of percentages this app's row editors
+// actually use for their columns (tech/step/outcome/download rows).
+.dash-w-20 { flex: 1 1 20%; }
+.dash-w-25 { flex: 1 1 25%; }
+.dash-w-30 { flex: 1 1 30%; }
+.dash-w-35 { flex: 1 1 35%; }
+.dash-w-40 { flex: 1 1 40%; }
+.dash-w-45 { flex: 1 1 45%; }
+.dash-w-55 { flex: 1 1 55%; }
+.dash-flex-1 { flex: 1; min-width: 0; }
+
+// Smaller, unbold label used directly above a RichTextEditor field (distinct from the
+// bolder .dash-section-label used above a whole repeatable-row section).
+.dash-field-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+
+  &.dash-field-label--tight {
+    margin-bottom: 0;
+  }
+}
+
+// ── ProjectCategoryFormModal.jsx ────────────────────────────────────────────
+.dash-modal-subtitle {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 1rem;
+}
+.dash-modal-title-spacer {
+  margin-bottom: 1rem;
+}
+.dash-color-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.dash-color-input {
+  width: 48px;
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  cursor: pointer;
+}
+
+// ── ProjectCard.jsx ─────────────────────────────────────────────────────────
+.dash-project-card {
+  // Fills its grid cell instead of sizing to its own content — .dash-project-grid is a
+  // CSS grid, and grid's default `align-items: stretch` already stretches each row's
+  // cells (SortableItem.jsx's wrapper div) to match the tallest card in the row, but
+  // without `height: 100%` here this card's own visible border/background stopped at
+  // its content height (e.g. a 2-line title vs. a 1-line title), leaving invisible
+  // slack in the taller cells — same fix as .dash-skill-card.
+  height: 100%;
+  box-sizing: border-box;
+  background: linear-gradient(135deg, var(--bg2) 0%, var(--bg3) 100%);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.25rem 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: relative;
+  opacity: 1;
+
+  &.disabled {
+    opacity: 0.55;
+  }
+}
+.dash-project-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.dash-project-card__header-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.dash-project-card__index {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+.dash-project-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+.dash-project-card__disabled-note {
+  font-size: 10.5px;
+  color: var(--muted);
+  font-style: italic;
+  margin-top: -6px;
+}
+.dash-project-card__title {
+  font-size: 15.5px;
+  font-weight: 700;
+  color: var(--text);
+}
+.dash-project-card__subtitle {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+.dash-project-card__meta {
+  // Pinned to the bottom of the now-stretched card (see .dash-project-card's `height:
+  // 100%` above) instead of trailing directly under a short subtitle with a big gap
+  // before the card's edge — every card's badge/status row now lines up on the same
+  // baseline within its row, same treatment as .dash-skill-card__count.
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.dash-project-card__badge {
+  font-size: 11px;
+  padding: 3px 9px;
+  border-radius: 6px;
+  font-weight: 600;
+  background: color-mix(in srgb, var(--badge-color) 12.5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--badge-color) 37.5%, transparent);
+  color: var(--badge-color);
+}
+.dash-project-card__image-count {
+  font-size: 11px;
+  color: var(--muted);
+  font-family: var(--mono);
+}
+.dash-project-card__link-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  color: var(--muted);
+  font-style: italic;
+
+  &.enabled {
+    color: var(--accent-green);
+    font-style: normal;
+  }
+}
+.dash-project-card__downloads {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+// ── Shared Experience sub-section chrome ────────────────────────────────────
+// WorkHistorySection / AchievementsSection / EducationSection all repeat this same
+// "title + New button" header, muted loading/empty text, and (for WorkHistory/
+// Education specifically) an identical row-card layout.
+.dash-section {
+  margin-bottom: 2.5rem;
+}
+.dash-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+.dash-section-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.dash-muted-text {
+  color: var(--text-secondary);
+}
+.dash-list-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.dash-entry-card {
+  background: linear-gradient(135deg, var(--bg2) 0%, var(--bg3) 100%);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.dash-entry-card__body {
+  min-width: 0;
+  flex: 1;
+}
+.dash-entry-card__title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.dash-entry-card__title {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text);
+}
+.dash-entry-card__current-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--accent-green);
+}
+.dash-entry-card__meta {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+.dash-entry-card__tech-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.dash-tech-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+}
+.dash-tech-chip__icon {
+  font-size: 11px;
+  color: var(--chip-color);
+}
+.dash-entry-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+.dash-entry-card__disabled-tag {
+  font-size: 10.5px;
+  color: var(--muted);
+  font-style: italic;
+  margin-right: 2px;
+}
+// EducationSection's row body uses its own (slightly different) three-line layout
+// instead of WorkHistory's title-row/meta split.
+.dash-entry-card__degree {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+.dash-entry-card__field {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.dash-entry-card__institution {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+// ── AchievementsSection.jsx (grid of tiles, not a row list) ─────────────────
+.dash-achievement-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+.dash-achievement-tile {
+  // Same fix as .dash-skill-card/.dash-project-card — fills its grid cell instead of
+  // sizing to its own content, so tiles with a longer/wrapping label don't visually
+  // outgrow their (already row-height-matched) neighbors.
+  height: 100%;
+  box-sizing: border-box;
+  background: linear-gradient(135deg, var(--bg2) 0%, var(--bg3) 100%);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1rem;
+  text-align: center;
+  position: relative;
+  opacity: 1;
+
+  &.disabled {
+    opacity: 0.55;
+  }
+}
+.dash-achievement-tile__drag {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+}
+.dash-achievement-tile__actions {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: flex;
+  align-items: center;
+}
+.dash-achievement-tile__icon {
+  font-size: 22px;
+  color: var(--tile-color);
+  margin-bottom: 8px;
+  margin-top: 14px;
+}
+.dash-achievement-tile__value {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--tile-color);
+}
+.dash-achievement-tile__label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+// ── ProjectCategoriesPanel.jsx ──────────────────────────────────────────────
+.dash-taxonomy-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.dash-taxonomy-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+.dash-group-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.dash-group-card {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 0.9rem 1rem;
+  background: linear-gradient(135deg, var(--bg2) 0%, var(--bg3) 100%);
+}
+.dash-group-card__children {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+  padding-left: 20px;
+}
+.dash-taxonomy-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0.6rem 0.9rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+}
+.dash-taxonomy-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--dot-color);
+  flex-shrink: 0;
+
+  &.dash-taxonomy-dot--sm {
+    width: 8px;
+    height: 8px;
+  }
+}
+.dash-taxonomy-icon {
+  font-size: 15px;
+  color: var(--icon-color);
+
+  &.dash-taxonomy-icon--sm {
+    font-size: 13px;
+  }
+}
+.dash-taxonomy-label {
+  flex: 1;
+  color: var(--text);
+
+  &.dash-taxonomy-label--group {
+    font-weight: 700;
+    font-size: 14px;
+  }
+  &.dash-taxonomy-label--sub {
+    font-size: 13px;
+  }
+}
+.dash-disabled-tag {
+  font-size: 10.5px;
+  color: var(--muted);
+  font-style: italic;
+  flex-shrink: 0;
+}
+.dash-add-subcategory-btn {
+  margin-top: 2px;
+  background: none;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  padding: 6px 12px;
+  color: var(--accent);
+  font-size: 12px;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+// ── ContentPresetsPanel.jsx ─────────────────────────────────────────────────
+.dash-intro-text {
+  font-size: 12.5px;
+  color: var(--muted);
+  margin-bottom: 1.25rem;
+  line-height: 1.6;
+}
+.dash-group-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 1.25rem;
+}
+.dash-group-tab {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--text-secondary);
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+
+  // `--tab-color` is only set on a per-group button (its admin-chosen color); the "All"
+  // tab never sets it, so it falls back to the standard accent color when active.
+  &.active {
+    border-color: var(--tab-color, var(--accent));
+    background: color-mix(in srgb, var(--tab-color, var(--accent)) 12.5%, transparent);
+    color: var(--tab-color, var(--accent));
+    font-weight: 600;
+  }
+}
+.dash-group-tab__disabled-note {
+  opacity: 0.6;
+  font-style: italic;
+}
+// ProjectsPanel's sub-category filter chips reuse .dash-group-tab's whole look at a
+// slightly smaller size.
+.dash-group-tab--sm {
+  padding: 5px 12px;
+  font-size: 12px;
+}
+.dash-group-heading {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+}
+.dash-kind-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.dash-kind-section {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 0.9rem 1rem;
+  background: linear-gradient(135deg, var(--bg2) 0%, var(--bg3) 100%);
+}
+.dash-kind-section__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.dash-kind-section__title {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text);
+}
+.dash-kind-section__empty {
+  font-size: 12.5px;
+  color: var(--muted);
+  padding-left: 4px;
+}
+.dash-preset-row__body {
+  min-width: 0;
+  flex: 1;
+}
+.dash-preset-row__summary {
+  font-size: 13px;
+  color: var(--text);
+  font-weight: 400;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  &.step {
+    font-weight: 600;
+  }
+}
+.dash-preset-row__subtext {
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: 2px;
+}
+
+// ── ProjectsPanel.jsx ────────────────────────────────────────────────────────
+.dash-view-tabs {
+  display: inline-flex;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 50px;
+  padding: 4px;
+  margin-bottom: 1.25rem;
+}
+.dash-view-tab {
+  padding: 7px 16px;
+  border-radius: 30px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+
+  &.active {
+    background: linear-gradient(135deg, rgba(0, 212, 255, 0.15) 0%, rgba(168, 85, 247, 0.1) 100%);
+    color: var(--accent);
+    font-weight: 600;
+  }
+}
+.dash-filter-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.dash-filter-column {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.dash-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.dash-hint-text {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 1rem;
+}
+.dash-project-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+// ── ProjectFormModal.jsx ────────────────────────────────────────────────────
+.dash-required-asterisk {
+  color: var(--accent-pink);
+}
+.dash-field-row {
+  display: flex;
+  gap: 1rem;
+}
+// File-upload "button" (an actual <label> wrapping a visually-hidden <input type=file> —
+// clicking the label opens the file picker without any JS). Reused for image uploads
+// (ProjectFormModal) and download-file uploads (ProjectFormModal, smaller `--compact`)
+// plus HeroPanel's resume upload.
+.dash-upload-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 6px 12px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  color: var(--accent);
+  font-size: 12.5px;
+  cursor: pointer;
+
+  &.dash-upload-label--compact {
+    padding: 8px 10px;
+    margin-top: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+}
+.dash-hidden-input {
+  display: none;
+}
+.dash-image-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+.dash-image-thumb {
+  position: relative;
+  width: 84px;
+  height: 84px;
+}
+.dash-image-thumb__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+.dash-image-thumb__remove {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: none;
+  background: var(--accent-pink);
+  color: #fff;
+  font-size: 12px;
+  line-height: 20px;
+  cursor: pointer;
+}
+// Wraps a "+ Add …" dashed button next to its "+ Add from library" select, sharing one
+// row (the dashed button alone uses plain .dash-add-row-btn, full width).
+.dash-add-row-line {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+.dash-switch-label__strong {
+  color: var(--accent-pink);
+}
+
+// ── HeroPanel.jsx ────────────────────────────────────────────────────────────
+.dash-panel--narrow {
+  max-width: 720px;
+}
+.dash-hero-intro {
+  font-size: 12.5px;
+  color: var(--muted);
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+// HeroPanel's own field column uses a slightly larger gap than the modal forms'
+// `.dash-field-column` (1.5rem vs 1rem) — same layout, one size modifier.
+.dash-field-column--lg {
+  gap: 1.5rem;
+}
+// Role/stat/tech row-group columns use an 8px gap (vs. the modal forms' 10px
+// `.dash-row-group`) — same layout, one size modifier.
+.dash-row-group--sm {
+  gap: 8px;
+}
+// A stat/tech row whose `enabled` is false fades to signal "won't show on the public
+// site" without needing a whole separate disabled-row layout.
+.dash-row--disabled {
+  opacity: 0.55;
+}
+.dash-resume-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+.dash-resume-clear-btn {
+  background: none;
+  border: none;
+  color: var(--accent-pink);
+  font-size: 12px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.dash-hero-footnote {
+  font-size: 11.5px;
+  color: var(--muted);
+  margin-top: 6px;
+  line-height: 1.5;
+}
+
+// ── RichTextEditor.jsx ───────────────────────────────────────────────────────
+.dash-rte {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.dash-rte__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+}
+.dash-rte__divider {
+  width: 1px;
+  height: 18px;
+  background: var(--border);
+  margin: 0 4px;
+}
+.dash-rte__spacer {
+  flex: 1;
+}
+.dash-rte__color-icon {
+  // Falls back to the toolbar button's own currentColor (active/inactive accent) when
+  // the cursor isn't inside any colored text — `--rte-cursor-color` is only set when
+  // Tiptap reports an actual color at the cursor.
+  color: var(--rte-cursor-color, inherit);
+}
+.dash-rte__content {
+  min-height: var(--rte-min-height, 90px);
+  padding: 10px 12px;
+}
+.dash-rte-color-menu {
+  display: flex;
+  gap: 6px;
+  padding: 0 4px;
+}
+.dash-rte-swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--swatch-color);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  padding: 0;
+
+  &.dash-rte-swatch--clear {
+    background: transparent;
+    border-color: var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+  }
+}
+
+// ── DragHandle.jsx ──────────────────────────────────────────────────────────
+.dash-drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  color: var(--muted);
+  cursor: grab;
+  flex-shrink: 0;
+  touch-action: none;
+}
+
+// ── Pagination.jsx ──────────────────────────────────────────────────────────
+.dash-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 1.5rem;
+}
+.dash-pagination__btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+
+  // Replaces the old JS `btnStyle(disabled)` computation — the real `disabled`
+  // attribute (already set by the caller) drives this directly, no state needed.
+  &:disabled {
+    color: var(--muted);
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+}
+.dash-pagination__label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-family: var(--mono);
+}
+
+// ── IconPicker.jsx ──────────────────────────────────────────────────────────
+.dash-icon-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.dash-icon-option__icon {
+  font-size: 14px;
+}
+
+// ── ProtectedRoute.jsx ──────────────────────────────────────────────────────
+.dash-auth-loading {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+}
+.dash-auth-loading__spinner {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  animation: dash-spin 0.8s linear infinite;
+}
+@keyframes dash-spin {
+  to { transform: rotate(360deg); }
+}
+
+// RichTextEditor.jsx's editable area (Tiptap's ProseMirror root gets class .rte-content
+// via editorProps.attributes). Kept minimal — reset default browser/ProseMirror margins
+// on the first/last child so the editor's padding is the only spacing, then restyle each
+// element type to match the app's existing dark-mode typography tokens.
+.rte-content {
+  outline: none;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.65;
+
+  > *:first-child { margin-top: 0; }
+  > *:last-child { margin-bottom: 0; }
+
+  p { margin: 0 0 0.6em; }
+
+  strong { color: var(--text); font-weight: 700; }
+  em { font-style: italic; }
+  u { text-decoration: underline; }
+  s { text-decoration: line-through; }
+
+  a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-decoration-color: rgba(0, 212, 255, 0.4);
+  }
+
+  ul, ol {
+    margin: 0 0 0.6em;
+    padding-left: 1.4em;
+  }
+  li { margin-bottom: 0.2em; }
+
+  blockquote {
+    margin: 0 0 0.6em;
+    padding-left: 0.9em;
+    border-left: 3px solid var(--accent);
+    color: var(--text-secondary);
+  }
+
+  // Tiptap's Placeholder extension marks the empty first paragraph with this class and
+  // a data-placeholder attribute — ::before renders the hint text without it ever being
+  // real (selectable/submittable) editor content.
+  p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    color: var(--muted);
+    float: left;
+    height: 0;
+    pointer-events: none;
+  }
+}
+
+// ── SkillsPanel.jsx / SkillCategoryCard.jsx ─────────────────────────────────
+.dash-skill-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+.dash-skill-card {
+  // Fills its grid cell instead of sizing to its own content — .dash-skill-grid is a
+  // CSS grid, and grid's default `align-items: stretch` already stretches each row's
+  // cells (SortableItem.jsx's wrapper div) to match the tallest card in that row, but
+  // without `height: 100%` here this card's own visible border/background stopped at
+  // its content height, leaving invisible slack in the taller cells — that mismatch
+  // between the (equal) cell height and the (unequal) card height was what actually
+  // read as "cards of different sizes" in the dashboard.
+  height: 100%;
+  box-sizing: border-box;
+  background: linear-gradient(135deg, var(--bg2) 0%, var(--bg3) 100%);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.25rem 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: relative;
+  opacity: 1;
+
+  &.disabled {
+    opacity: 0.55;
+  }
+}
+.dash-skill-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.dash-skill-card__header-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.dash-skill-card__index {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+.dash-skill-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+.dash-skill-card__disabled-note {
+  font-size: 10.5px;
+  color: var(--muted);
+  font-style: italic;
+  margin-top: -6px;
+}
+.dash-skill-card__title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.dash-skill-card__icon-wrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--card-color) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--card-color) 30%, transparent);
+}
+.dash-skill-card__icon {
+  font-size: 18px;
+  color: var(--card-color);
+}
+// ContactServiceCard.jsx's icon is a raw emoji glyph, not a react-icons component —
+// no `color` CSS applies to emoji, so this variant only adjusts font-size to visually
+// match .dash-skill-card__icon's footprint inside the same .dash-skill-card__icon-wrap.
+.dash-skill-card__icon-wrap--emoji {
+  font-size: 18px;
+}
+.dash-skill-card__title {
+  font-size: 15.5px;
+  font-weight: 700;
+  color: var(--text);
+}
+.dash-skill-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.dash-skill-card__empty-note {
+  font-size: 12px;
+  color: var(--muted);
+  font-style: italic;
+}
+.dash-skill-card__count {
+  // Pinned to the bottom of the now-stretched card (see .dash-skill-card's `height:
+  // 100%` above) instead of sitting directly under a short tag list with a big gap
+  // before the card's edge — every card's footer note now lines up on the same
+  // baseline within its row, which is what actually reads as "uniform" card height.
+  margin-top: auto;
+  font-size: 11px;
+  color: var(--muted);
+  font-family: var(--mono);
+}
+// A single disabled technology within an otherwise-enabled category — dimmer + a strike,
+// same visual language dash-row--disabled/dash-achievement-tile.disabled already use for
+// "this exists but won't render on the public site".
+.dash-tech-chip--disabled {
+  opacity: 0.45;
+  text-decoration: line-through;
+}
+
+// ── ContactPanel.jsx / ContactServiceCard.jsx ───────────────────────────────
+// Reuses .dash-skill-card/.dash-skill-grid wholesale (same "icon + title + footer note"
+// card shape) — this is the one bit unique to a service card: its description text.
+.dash-contact-service-card__desc {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+// ── Dashboard responsive ────────────────────────────────────────────────────
+// The dashboard had NO responsive rules at all before this pass (confirmed: zero
+// @media queries anywhere in this file) — audited with a real headless browser at
+// 375/390/768/1024px across every panel and fixed only what was actually verified
+// broken there, not a blanket rewrite.
+@media (max-width: 900px) {
+  // The topbar's 7 tabs (Hero/Projects/Skills/Experience/Contact/Footer/Settings)
+  // don't fit in one row below ~1000px, and with no wrap/scroll of its own the row
+  // just kept growing — dragging the ENTIRE PAGE into horizontal scroll on every
+  // dashboard screen (confirmed: ~480px of overflow at 375px wide). This was the
+  // single worst bug found. Logo + Logout stay on their own row; the tab strip drops
+  // to its own full-width row and scrolls horizontally instead — same pattern the
+  // public site's own .project-group-tabs already uses for an overflowing button row.
+  .dash-topbar {
+    flex-wrap: wrap;
+    row-gap: 0.75rem;
+  }
+  .dash-topbar__tabs {
+    order: 3;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+  .dash-topbar__tab {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 700px) {
+  // Every repeatable-row editor (Hero's stat/tech rows, SkillCategory's tag rows,
+  // ProjectFormModal's step/outcome/download rows, Site Settings' section rows, ...)
+  // lays its fields out in one unbreakable flex row with percentage-based widths —
+  // fine on desktop, but on a narrow phone (or the modal width phones actually get)
+  // those percentages shrink each field, and its MUI label, well past readable —
+  // confirmed: "Number"/"Color" truncating to "Nu…"/"C…", a step's title field
+  // squeezed to ~30px next to its rich-text toolbar. Letting the row wrap and giving
+  // every field/wrapper a sane minimum width fixes every one of these at once
+  // instead of patching each form's per-field sx individually.
+  .dash-row {
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+  .dash-row > .MuiFormControl-root,
+  .dash-row > .dash-w-40,
+  .dash-row > .dash-w-55 {
+    flex: 1 1 150px !important;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 560px) {
+  // Two-field rows (Group/Category, phone raw/display text, LinkedIn URL/handle,
+  // first/last name, ...) read fine split 50/50 down to a large phone, but stack
+  // cleaner than truncate on genuinely narrow portrait widths.
+  .dash-field-row {
+    flex-direction: column;
+  }
 }

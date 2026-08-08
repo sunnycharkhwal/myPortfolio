@@ -4,6 +4,7 @@ import { listWorkHistory, listAchievements, listEducation } from '../api/experie
 import { resolveIcon } from '../utils/iconRegistry.js'
 import SectionHeader from './SectionHeader.jsx'
 import useFadeIn from '../hooks/useFadeIn.js'
+import useSectionHeading from '../hooks/useSectionHeading.js'
 
 const ACCENTS = ['#00d4ff', '#a855f7', '#10b981', '#f97316']
 
@@ -148,6 +149,7 @@ export default function Experience() {
   // design). Fails open to empty arrays on error rather than crashing the page.
   const [data, setData] = useState({ experience: [], achievements: [], education: [] })
   const [loaded, setLoaded] = useState(false)
+  const heading = useSectionHeading('experience', { num: '03', title: 'Experience' })
   useFadeIn(ref)
 
   useEffect(() => {
@@ -178,13 +180,16 @@ export default function Experience() {
     return () => observer.disconnect()
   }, [])
 
-  const EXPERIENCE = data.experience
-  const EXPERIENCE_ACHIEVEMENTS = data.achievements
-  const EDUCATION = data.education
+  // The GET endpoints these come from are shared with the dashboard (unlike Project's
+  // public-vs-manage split), so they return disabled entries too — filtered out here,
+  // client-side, same pattern as Projects.jsx's own `enabled !== false` check.
+  const EXPERIENCE = data.experience.filter((e) => e.enabled !== false)
+  const EXPERIENCE_ACHIEVEMENTS = data.achievements.filter((a) => a.enabled !== false)
+  const EDUCATION = data.education.filter((e) => e.enabled !== false)
 
   return (
     <section id="experience" ref={ref} className="sc-section" style={{ overflow: 'hidden' }}>
-      <SectionHeader num="03" title="Experience" />
+      <SectionHeader num={heading.num} title={heading.title} />
 
       <div style={{
         display: 'grid',

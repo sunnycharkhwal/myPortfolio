@@ -9,7 +9,9 @@ import Project from '../models/Project.js'
 // seedCollection below, matching seedExperience.js's pattern exactly). Not interactive —
 // inserts fixed content, nothing to prompt for.
 
-const PROJECTS = [
+// Exported (not just local) so seedContentPresets.js can reuse this same legacy content
+// as the seed data for the content-preset library, without duplicating it a third time.
+export const PROJECTS = [
   {
     group: 'devops', category: 'cicd', catLabel: 'CI/CD Pipeline',
     images: ['https://picsum.photos/seed/sc-project-1-1/1200/750', 'https://picsum.photos/seed/sc-project-1-2/1200/750', 'https://picsum.photos/seed/sc-project-1-3/1200/750'],
@@ -391,7 +393,14 @@ async function main() {
   process.exit(0)
 }
 
-main().catch((err) => {
-  console.error('Seed failed:', err.message)
-  process.exit(1)
-})
+// Only auto-run when this file is executed directly (`npm run seed:projects`) — NOT
+// when it's imported purely for its `PROJECTS` export, which seedContentPresets.js now
+// does. Without this guard, importing the array would silently trigger a real DB
+// connection and Project-seeding side effect just from `import { PROJECTS } from
+// './seedProjects.js'`, which is not what that import means.
+if (import.meta.url === `file://${process.argv[1]}`) {
+  main().catch((err) => {
+    console.error('Seed failed:', err.message)
+    process.exit(1)
+  })
+}

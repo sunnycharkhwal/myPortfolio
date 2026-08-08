@@ -33,14 +33,14 @@ export default function ConfirmDialog({
         },
       }}
     >
-      <div style={{ padding: '1.75rem' }}>
-        <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text)', marginBottom: '0.6rem' }}>
+      <div className="dash-confirm">
+        <h3 className="dash-confirm__title">
           {title}
         </h3>
-        <p style={{ fontSize: 13.5, color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '1.5rem' }}>
+        <p className="dash-confirm__message">
           {message || 'This action cannot be undone.'}
         </p>
-        <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+        <div className="dash-confirm__actions">
           {!hideCancel && (
             <Button
               onClick={onCancel}

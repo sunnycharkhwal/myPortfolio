@@ -10,6 +10,7 @@ function pickEducationFields(body) {
   if (body.location !== undefined) fields.location = body.location
   if (body.period !== undefined) fields.period = String(body.period).trim()
   if (body.order !== undefined) fields.order = Number(body.order) || 0
+  if (body.enabled !== undefined) fields.enabled = Boolean(body.enabled)
   return fields
 }
 

@@ -2,6 +2,7 @@ import mongoose from 'mongoose'
 import Project from '../models/Project.js'
 import ProjectCategory from '../models/ProjectCategory.js'
 import { asyncHandler } from '../utils/asyncHandler.js'
+import { isSafeUrl, isSafeDownloadUrl, UNSAFE_URL_MESSAGE } from '../utils/validators.js'
 
 function toStringArray(value) {
   return Array.isArray(value) ? value.map((v) => String(v)).filter(Boolean) : []
@@ -34,19 +35,23 @@ function pickProjectFields(body) {
 
   if (body.title !== undefined) fields.title = String(body.title).trim()
   if (body.subtitle !== undefined) fields.subtitle = String(body.subtitle).trim()
-  if (body.group !== undefined) fields.group = body.group
-  if (body.category !== undefined) fields.category = body.category
+  // Cast to String before it ever reaches a query filter (validateGroupAndCategory
+  // below) or the database — passing the raw value through let a NoSQL query operator
+  // object (e.g. `{ "$ne": null }`) slip past the "must match a real category" check.
+  if (body.group !== undefined) fields.group = String(body.group).trim()
+  if (body.category !== undefined) fields.category = String(body.category).trim()
   if (body.catLabel !== undefined) fields.catLabel = String(body.catLabel).trim()
   if (body.images !== undefined) fields.images = toStringArray(body.images)
   if (body.objective !== undefined) fields.objective = body.objective
   if (body.steps !== undefined) fields.steps = pickStepRows(body.steps)
   if (body.outcomes !== undefined) fields.outcomes = toStringArray(body.outcomes)
   if (body.order !== undefined) fields.order = Number(body.order) || 0
+  if (body.enabled !== undefined) fields.enabled = Boolean(body.enabled)
   if (body.link !== undefined) fields.link = String(body.link).trim()
   if (body.linkEnabled !== undefined) fields.linkEnabled = Boolean(body.linkEnabled)
   if (body.downloads !== undefined) fields.downloads = pickDownloadRows(body.downloads)
 
-  const group = body.group
+  const group = body.group !== undefined ? String(body.group).trim() : undefined
   if (group === 'frontend') {
     if (body.techStack !== undefined) fields.techStack = toStringArray(body.techStack)
     unset.aws = ''
@@ -67,14 +72,17 @@ function pickProjectFields(body) {
 async function validateGroupAndCategory(body, userId, res) {
   let groupDoc = null
   if (body.group !== undefined) {
-    groupDoc = await ProjectCategory.findOne({ slug: body.group, parent: null, user: userId })
+    // String(...) here (not just at pickProjectFields' write side) is what actually
+    // matters — this is the query filter itself, so a raw object here would be passed
+    // straight to MongoDB as a query operator instead of a literal equality check.
+    groupDoc = await ProjectCategory.findOne({ slug: String(body.group), parent: null, user: userId })
     if (!groupDoc) {
       res.status(400).json({ message: `Unknown group: ${body.group}` })
       return false
     }
   }
   if (body.category !== undefined) {
-    const categoryDoc = await ProjectCategory.findOne({ slug: body.category, user: userId }).where('parent').ne(null)
+    const categoryDoc = await ProjectCategory.findOne({ slug: String(body.category), user: userId }).where('parent').ne(null)
     if (!categoryDoc) {
       res.status(400).json({ message: `Unknown category: ${body.category}` })
       return false
@@ -85,6 +93,27 @@ async function validateGroupAndCategory(body, userId, res) {
     if (groupDoc && String(categoryDoc.parent) !== String(groupDoc._id)) {
       res.status(400).json({ message: `Category "${body.category}" does not belong to group "${body.group}"` })
       return false
+    }
+  }
+  return true
+}
+
+// `link` renders as a real <a href> ("Visit Project") and each download's `url` as an
+// <a href download> — reject anything that isn't a real link/anchor/data-URI so a
+// `javascript:` value can never be stored here (see server/src/utils/validators.js).
+// Only checks fields actually present in the body, same partial-update rationale as
+// validateGroupAndCategory above.
+function validateLinks(body, res) {
+  if (body.link !== undefined && !isSafeUrl(body.link)) {
+    res.status(400).json({ message: `link: ${UNSAFE_URL_MESSAGE}` })
+    return false
+  }
+  if (body.downloads !== undefined && Array.isArray(body.downloads)) {
+    for (const row of body.downloads) {
+      if (row && !isSafeDownloadUrl(row.url)) {
+        res.status(400).json({ message: `download "${row.label || ''}": ${UNSAFE_URL_MESSAGE}` })
+        return false
+      }
     }
   }
   return true
@@ -124,6 +153,7 @@ export const createProject = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: 'category is required' })
   }
   if (!(await validateGroupAndCategory(body, req.user.id, res))) return
+  if (!validateLinks(body, res)) return
   if (!Array.isArray(body.images) || body.images.filter(Boolean).length === 0) {
     return res.status(400).json({ message: 'At least one image is required' })
   }
@@ -148,6 +178,7 @@ export const updateProject = asyncHandler(async (req, res) => {
 
   const body = req.body || {}
   if (!(await validateGroupAndCategory(body, req.user.id, res))) return
+  if (!validateLinks(body, res)) return
 
   const { fields, unset } = pickProjectFields(body)
   const update = { $set: fields }

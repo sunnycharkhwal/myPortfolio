@@ -63,10 +63,15 @@ const projectSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    // Optional "visit this project" URL. `linkEnabled` defaults true so every project
-    // that predates this field (no `link` set at all) stays fully visible — the public
-    // site only hides a project when a link exists AND is explicitly toggled off (see
-    // Projects.jsx's visibility filter), same enforcement style as a disabled category.
+    // Disabling hides the WHOLE project from the public site without deleting it —
+    // same enforcement style as ProjectCategory.enabled/ContentPreset.enabled. Separate
+    // from `linkEnabled` below, which only ever controlled the "Visit Project" button —
+    // it used to also be (mis)used to hide the entire project, which is what this field
+    // now does properly instead.
+    enabled: { type: Boolean, default: true },
+    // Optional "visit this project" URL — `link`/`linkEnabled` together control ONLY
+    // whether the "Visit Project" button renders in the project's detail view; they no
+    // longer affect whether the project itself is listed (see `enabled` above for that).
     link: { type: String, trim: true, default: '' },
     linkEnabled: { type: Boolean, default: true },
     // Admin-managed, repeatable — in addition to (not instead of) the always-present

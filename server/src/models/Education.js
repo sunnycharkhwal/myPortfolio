@@ -33,6 +33,12 @@ const educationSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    // Disabling hides this entry from the public site without deleting it — same
+    // enforcement style as ProjectCategory.enabled/ContentPreset.enabled.
+    enabled: {
+      type: Boolean,
+      default: true,
+    },
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',

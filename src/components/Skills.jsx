@@ -1,7 +1,35 @@
 import { useRef, useEffect, useState } from 'react'
-import { SKILLS } from '../data/index.js'
+import { listSkillCategories } from '../api/skillsApi.js'
+import { getSkillsSection } from '../api/skillsSectionApi.js'
+import { resolveIcon } from '../utils/iconRegistry.js'
+import { sanitizeRichText } from '../utils/sanitizeRichText.js'
 import SectionHeader from './SectionHeader.jsx'
 import useFadeIn from '../hooks/useFadeIn.js'
+import useSectionHeading from '../hooks/useSectionHeading.js'
+
+// The card's top hairline / icon glow only ever needs one accent color per category —
+// derived here from the admin-set `color` instead of a stored second "gradient" field,
+// same single-color-field convention Projects.jsx's categoryBadgeStyle and Experience.jsx's
+// achievement-value gradient already use.
+function categoryGradient(color) {
+  return `linear-gradient(135deg, ${color} 0%, ${color}99 100%)`
+}
+
+// Fails open to this exact copy (not blank) both before the fetch resolves and if it
+// ever fails — same "briefly the old hardcoded content beats briefly blank" precedent
+// Hero.jsx's DEFAULT_HERO uses.
+const DEFAULT_SECTION = {
+  tagline:
+    '<p>Technologies I use to build <span style="color: #00d4ff">scalable</span>, ' +
+    '<span style="color: #a855f7">secure</span>, and ' +
+    '<span style="color: #10b981">automated</span> infrastructure</p>',
+  stats: [
+    { value: '39', label: 'Technologies', color: 'var(--accent)' },
+    { value: '8', label: 'Categories', color: 'var(--accent-purple)' },
+    { value: '∞', label: 'Learning', color: 'var(--accent-green)' },
+  ],
+  footerCommand: 'skills --list --format=awesome',
+}
 
 export default function Skills() {
   const ref = useRef()
@@ -9,6 +37,48 @@ export default function Skills() {
   const [hoveredCard, setHoveredCard] = useState(null)
   const [hoveredTag, setHoveredTag] = useState(null)
   useFadeIn(ref)
+
+  // Public content fetched live from the database — no Redux for the data itself, same
+  // self-contained fetch pattern as Experience.jsx/Projects.jsx. Fails open to an empty
+  // array (categories) / DEFAULT_SECTION (copy) on error rather than crashing the page;
+  // disabled categories/tags/stats are filtered out client-side, same `enabled !== false`
+  // convention used everywhere else.
+  const [rawCategories, setRawCategories] = useState([])
+  const [section, setSection] = useState(DEFAULT_SECTION)
+  const [loaded, setLoaded] = useState(false)
+  const heading = useSectionHeading('skills', { num: '01', title: 'Tech Stack' })
+
+  useEffect(() => {
+    let cancelled = false
+    Promise.all([listSkillCategories(), getSkillsSection()])
+      .then(([categoriesData, sectionData]) => {
+        if (cancelled) return
+        setRawCategories(categoriesData)
+        if (sectionData && Object.keys(sectionData).length > 0) {
+          setSection((prev) => ({ ...prev, ...sectionData }))
+        }
+        setLoaded(true)
+      })
+      .catch(() => {
+        if (!cancelled) setLoaded(true)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const SKILLS = rawCategories
+    .filter((c) => c.enabled !== false)
+    .map((c) => ({
+      title: c.title,
+      icon: resolveIcon(c.iconKey),
+      color: c.color,
+      gradient: categoryGradient(c.color),
+      tags: (c.tags || [])
+        .filter((t) => t.enabled !== false)
+        .map((t) => ({ name: t.name, icon: resolveIcon(t.iconKey) })),
+    }))
+  const visibleStats = (section.stats || []).filter((s) => s.enabled !== false)
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -25,24 +95,27 @@ export default function Skills() {
 
   return (
     <section id="skills" ref={ref} className="sc-section" style={{ overflow: 'hidden' }}>
-      <SectionHeader num="01" title="Tech Stack" />
+      <SectionHeader num={heading.num} title={heading.title} />
       
       
-      <p style={{
-        textAlign: 'center',
-        maxWidth: 600,
-        margin: '0 auto 3rem',
-        color: 'var(--text-secondary)',
-        fontSize: '1.1rem',
-        lineHeight: 1.7,
-        opacity: isVisible ? 1 : 0,
-        transform: isVisible ? 'translateY(0)' : 'translateY(20px)',
-        transition: 'all 0.6s ease',
-      }}>
-        Technologies I use to build <span style={{ color: 'var(--accent)' }}>scalable</span>, 
-        <span style={{ color: 'var(--accent-purple)' }}> secure</span>, and 
-        <span style={{ color: 'var(--accent-green)' }}> automated</span> infrastructure
-      </p>
+      {/* A <div>, not a <p> — RichTextEditor.jsx (Tiptap) always wraps saved content in
+          its own <p>, and a <p> can't validly contain another <p> once an admin edits
+          this from the dashboard. Same container choice Hero.jsx's bio already makes. */}
+      <div
+        className="rich-content"
+        style={{
+          textAlign: 'center',
+          maxWidth: 600,
+          margin: '0 auto 3rem',
+          color: 'var(--text-secondary)',
+          fontSize: '1.1rem',
+          lineHeight: 1.7,
+          opacity: isVisible ? 1 : 0,
+          transform: isVisible ? 'translateY(0)' : 'translateY(20px)',
+          transition: 'all 0.6s ease',
+        }}
+        dangerouslySetInnerHTML={{ __html: sanitizeRichText(section.tagline) }}
+      />
 
       
       <div style={{
@@ -50,7 +123,9 @@ export default function Skills() {
         gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
         gap: '1.5rem',
       }}>
-        {SKILLS.map((skill, index) => (
+        {!loaded ? (
+          <p style={{ color: 'var(--text-secondary)', gridColumn: '1 / -1', textAlign: 'center' }}>Loading tech stack…</p>
+        ) : SKILLS.map((skill, index) => (
           <div
             key={skill.title}
             style={{
@@ -229,11 +304,7 @@ export default function Skills() {
         transform: isVisible ? 'translateY(0)' : 'translateY(30px)',
         transition: 'all 0.6s ease 0.8s',
       }}>
-        {[
-          { value: '25+', label: 'Technologies', color: 'var(--accent)' },
-          { value: '8', label: 'Categories', color: 'var(--accent-purple)' },
-          { value: '∞', label: 'Learning', color: 'var(--accent-green)' },
-        ].map((stat, i) => (
+        {visibleStats.map((stat, i) => (
           <div key={stat.label} style={{
             textAlign: 'center',
             display: 'flex',
@@ -288,8 +359,8 @@ export default function Skills() {
           borderRadius: 8,
           border: '1px solid rgba(0, 212, 255, 0.1)',
         }}>
-          <span style={{ color: 'var(--accent-green)' }}>$</span> skills --list --format=awesome 
-          <span style={{ 
+          <span style={{ color: 'var(--accent-green)' }}>$</span> {section.footerCommand}{' '}
+          <span style={{
             display: 'inline-block', 
             width: 8, 
             height: 14, 

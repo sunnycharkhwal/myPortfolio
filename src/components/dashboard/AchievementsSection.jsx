@@ -4,6 +4,7 @@ import Button from '@mui/material/Button'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 import IconButton from '@mui/material/IconButton'
+import Switch from '@mui/material/Switch'
 import { DndContext, closestCenter, PointerSensor, KeyboardSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { SortableContext, rectSortingStrategy, sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 import { fetchAchievements, deleteAchievementEntry, updateAchievementEntry } from '../../store/experienceSectionSlice.js'
@@ -44,6 +45,11 @@ export default function AchievementsSection() {
     dispatch(addToast({ message: `"${target?.label || 'Achievement'}" deleted`, severity: 'info' }))
     refetch()
   }
+  const handleToggleEnabled = async (item) => {
+    await dispatch(updateAchievementEntry({ id: item._id, data: { enabled: !item.enabled } }))
+    dispatch(addToast({ message: `"${item.label}" ${item.enabled ? 'disabled' : 'enabled'}`, severity: 'info' }))
+    refetch()
+  }
   const handleSaved = (wasEdit, label) => {
     setModalOpen(false)
     dispatch(addToast({ message: `"${label}" ${wasEdit ? 'updated' : 'added'}`, severity: 'success' }))
@@ -73,9 +79,9 @@ export default function AchievementsSection() {
   }
 
   return (
-    <section style={{ marginBottom: '2.5rem' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-        <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text)' }}>Achievements</h3>
+    <section className="dash-section">
+      <div className="dash-section-header">
+        <h3 className="dash-section-title">Achievements</h3>
         <Button
           onClick={handleNew}
           sx={{
@@ -93,33 +99,30 @@ export default function AchievementsSection() {
       </div>
 
       {status === 'loading' && items.length === 0 ? (
-        <p style={{ color: 'var(--text-secondary)' }}>Loading…</p>
+        <p className="dash-muted-text">Loading…</p>
       ) : items.length === 0 ? (
-        <p style={{ color: 'var(--text-secondary)' }}>No achievements yet.</p>
+        <p className="dash-muted-text">No achievements yet.</p>
       ) : (
         // rectSortingStrategy (not vertical-list) — this is a CSS grid, not a column.
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={items.map((i) => i._id)} strategy={rectSortingStrategy}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '0.75rem' }}>
+            <div className="dash-achievement-grid">
               {items.map((item) => {
                 const Icon = resolveIcon(item.iconKey)
                 return (
                   <SortableItem key={item._id} id={item._id}>
                     {(handle) => (
-                      <div
-                        style={{
-                          background: 'linear-gradient(135deg, var(--bg2) 0%, var(--bg3) 100%)',
-                          border: '1px solid var(--border)',
-                          borderRadius: 14,
-                          padding: '1rem',
-                          textAlign: 'center',
-                          position: 'relative',
-                        }}
-                      >
-                        <div style={{ position: 'absolute', top: 6, left: 6 }}>
+                      <div className={`dash-achievement-tile${item.enabled === false ? ' disabled' : ''}`}>
+                        <div className="dash-achievement-tile__drag">
                           <DragHandle {...handle} />
                         </div>
-                        <div style={{ position: 'absolute', top: 6, right: 6, display: 'flex', gap: 2 }}>
+                        <div className="dash-achievement-tile__actions">
+                          <Switch
+                            checked={item.enabled !== false}
+                            onChange={() => handleToggleEnabled(item)}
+                            size="small"
+                            sx={{ '& .MuiSwitch-switchBase.Mui-checked': { color: 'var(--accent)' }, transform: 'scale(0.8)' }}
+                          />
                           <IconButton size="small" onClick={() => handleEdit(item)} sx={{ color: 'var(--text-secondary)' }}>
                             <EditIcon sx={{ fontSize: 14 }} />
                           </IconButton>
@@ -127,9 +130,9 @@ export default function AchievementsSection() {
                             <DeleteIcon sx={{ fontSize: 14 }} />
                           </IconButton>
                         </div>
-                        <Icon style={{ fontSize: 22, color: item.color, marginBottom: 8, marginTop: 14 }} />
-                        <div style={{ fontSize: '1.3rem', fontWeight: 800, color: item.color }}>{item.value}</div>
-                        <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 4 }}>{item.label}</div>
+                        <Icon className="dash-achievement-tile__icon" style={{ '--tile-color': item.color }} />
+                        <div className="dash-achievement-tile__value" style={{ '--tile-color': item.color }}>{item.value}</div>
+                        <div className="dash-achievement-tile__label">{item.label}</div>
                       </div>
                     )}
                   </SortableItem>

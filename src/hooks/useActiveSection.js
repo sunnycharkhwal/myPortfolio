@@ -1,14 +1,20 @@
 import { useEffect } from 'react'
 import { useDispatch } from 'react-redux'
-import { NAV_LINKS } from '../data/index.js'
 import { setActiveSection } from '../store/uiSlice.js'
+
+// Fixed, known set — every portfolio page has exactly these five sections (same set
+// SiteSettings.sections uses on the backend). Not derived from the dashboard-managed
+// Nav link list: `.filter(Boolean)` below already drops any id that isn't currently
+// rendered (a disabled section, or before its component mounts), so a hardcoded
+// superset here is safe and doesn't need its own fetch just to observe scroll position.
+const SECTION_IDS = ['hero', 'skills', 'projects', 'experience', 'contact']
 
 export default function useActiveSection() {
   const dispatch = useDispatch()
 
   useEffect(() => {
 
-    const sectionIds = ['hero', ...NAV_LINKS.map(l => l.toLowerCase())]
+    const sectionIds = SECTION_IDS
     const els = sectionIds
       .map(id => document.getElementById(id))
       .filter(Boolean)

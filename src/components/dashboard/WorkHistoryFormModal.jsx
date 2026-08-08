@@ -20,6 +20,7 @@ const emptyForm = {
   current: false,
   order: 0,
   points: '',
+  enabled: true,
 }
 
 const fieldSx = {
@@ -55,6 +56,7 @@ export default function WorkHistoryFormModal({ open, editingItem, onClose, onSav
         current: Boolean(editingItem.current),
         order: editingItem.order ?? 0,
         points: (editingItem.points || []).join('\n'),
+        enabled: editingItem.enabled ?? true,
       })
       setTechRows((editingItem.tech || []).map((t) => ({ ...t })))
     } else {
@@ -93,6 +95,7 @@ export default function WorkHistoryFormModal({ open, editingItem, onClose, onSav
       order: Number(form.order) || 0,
       points: form.points.split('\n').map((p) => p.trim()).filter(Boolean),
       tech: techRows,
+      enabled: form.enabled,
     }
 
     const result = await dispatch(
@@ -124,16 +127,7 @@ export default function WorkHistoryFormModal({ open, editingItem, onClose, onSav
         },
       }}
     >
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: '10%',
-          right: '10%',
-          height: 1,
-          background: 'linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.5), rgba(168, 85, 247, 0.5), transparent)',
-        }}
-      />
+      <div className="dash-modal-hairline" />
       <IconButton
         onClick={onClose}
         aria-label="Close"
@@ -150,28 +144,18 @@ export default function WorkHistoryFormModal({ open, editingItem, onClose, onSav
         <CloseIcon fontSize="small" />
       </IconButton>
 
-      <form onSubmit={handleSubmit} style={{ padding: '2.25rem 2rem 2rem', maxHeight: '85vh', overflowY: 'auto' }}>
-        <h2 style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--text)', marginBottom: '1.5rem' }}>
+      <form onSubmit={handleSubmit} className="dash-modal-form">
+        <h2 className="dash-modal-title">
           {editingItem ? 'Edit Work History Entry' : 'New Work History Entry'}
         </h2>
 
         {(localError || (mutationStatus === 'failed' && error)) && (
-          <div
-            style={{
-              marginBottom: '1.25rem',
-              padding: '10px 14px',
-              borderRadius: 10,
-              background: 'rgba(255, 107, 107, 0.1)',
-              border: '1px solid rgba(255, 107, 107, 0.3)',
-              color: 'var(--accent-pink)',
-              fontSize: 13,
-            }}
-          >
+          <div className="dash-alert dash-alert--error">
             {localError || error}
           </div>
         )}
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div className="dash-field-column">
           <TextField label="Title" required fullWidth value={form.title} onChange={set('title')} sx={fieldSx} />
           <TextField label="Company" required fullWidth value={form.company} onChange={set('company')} sx={fieldSx} />
           <TextField label="Location" fullWidth value={form.location} onChange={set('location')} sx={fieldSx} />
@@ -193,6 +177,16 @@ export default function WorkHistoryFormModal({ open, editingItem, onClose, onSav
             label="Current role"
             sx={{ color: 'var(--text-secondary)' }}
           />
+          <FormControlLabel
+            control={
+              <Switch
+                checked={form.enabled}
+                onChange={(e) => setForm((f) => ({ ...f, enabled: e.target.checked }))}
+                sx={{ '& .MuiSwitch-switchBase.Mui-checked': { color: 'var(--accent)' } }}
+              />
+            }
+            label={<span className="dash-switch-label">Enabled — when off, this entry is hidden from the public site</span>}
+          />
           <TextField
             label="Display order"
             type="number"
@@ -212,13 +206,13 @@ export default function WorkHistoryFormModal({ open, editingItem, onClose, onSav
           />
 
           <div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 8 }}>
+            <div className="dash-section-label">
               Tech stack
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div className="dash-row-group">
               {techRows.map((row, i) => (
-                <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                  <div style={{ flex: '1 1 40%' }}>
+                <div key={i} className="dash-row">
+                  <div className="dash-w-40">
                     <IconPicker value={row.iconKey} onChange={(e) => updateTechRow(i, { iconKey: e.target.value })} />
                   </div>
                   <TextField
@@ -233,37 +227,14 @@ export default function WorkHistoryFormModal({ open, editingItem, onClose, onSav
                     onChange={(e) => updateTechRow(i, { color: e.target.value })}
                     sx={{ ...fieldSx, flex: '1 1 20%' }}
                   />
-                  <span
-                    style={{
-                      width: 20,
-                      height: 20,
-                      borderRadius: '50%',
-                      background: row.color,
-                      border: '1px solid var(--border)',
-                      flexShrink: 0,
-                    }}
-                  />
+                  <span className="dash-color-swatch" style={{ '--swatch-color': row.color }} />
                   <IconButton size="small" onClick={() => removeTechRow(i)} sx={{ color: 'var(--accent-pink)' }}>
                     <DeleteIcon fontSize="small" />
                   </IconButton>
                 </div>
               ))}
             </div>
-            <button
-              type="button"
-              onClick={addTechRow}
-              style={{
-                marginTop: 10,
-                background: 'none',
-                border: '1px dashed var(--border)',
-                borderRadius: 8,
-                padding: '8px 14px',
-                color: 'var(--accent)',
-                fontSize: 12.5,
-                cursor: 'pointer',
-                width: '100%',
-              }}
-            >
+            <button type="button" onClick={addTechRow} className="dash-add-row-btn">
               + Add technology
             </button>
           </div>

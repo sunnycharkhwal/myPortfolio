@@ -9,7 +9,10 @@ import { setProjectFilter, openProject, closeProject } from '../store/uiSlice.js
 import { listProjects } from '../api/projectsApi.js'
 import { listProjectCategories } from '../api/projectCategoriesApi.js'
 import { resolveIcon } from '../utils/iconRegistry.js'
+import { isRichTextEmpty } from '../utils/htmlToPlainText.js'
+import { sanitizeRichText } from '../utils/sanitizeRichText.js'
 import useFadeIn from '../hooks/useFadeIn.js'
+import useSectionHeading from '../hooks/useSectionHeading.js'
 import SectionHeader from './SectionHeader.jsx'
 import DownloadLinkButton from './DownloadLinkButton.jsx'
 
@@ -221,14 +224,12 @@ function ProjectGallery({ images, projectTitle }) {
   )
 }
 
-// Splits step copy on its <strong>…</strong> markers and returns plain JSX
-// (strings + <strong> elements) instead of injecting raw HTML — the data only
-// ever uses that one tag, so a full HTML parser/sanitizer would be overkill.
-function renderStepText(text) {
-  const parts = String(text).split(/<strong>(.*?)<\/strong>/g)
-  return parts.map((part, i) =>
-    i % 2 === 1 ? <strong key={i} style={{ color: 'var(--text)' }}>{part}</strong> : part
-  )
+// Renders a dashboard-authored rich text field (already sanitized by the caller) as
+// real HTML — bold/italic/underline/strike/lists/blockquote/links, whatever the admin
+// used RichTextEditor.jsx's toolbar to produce. `.rich-content` (src/scss/_components.scss)
+// gives the resulting <p>/<ul>/<a>/etc the same typography this spot already had.
+function RichText({ html, className = '', style }) {
+  return <div className={`rich-content ${className}`} style={style} dangerouslySetInnerHTML={{ __html: sanitizeRichText(html) }} />
 }
 
 function ProjectModal({ project, index, categories, onClose }) {
@@ -364,7 +365,7 @@ function ProjectModal({ project, index, categories, onClose }) {
               (no objective typed, no steps added, no tech/AWS entries) renders neither
               its heading nor its content, rather than showing an empty-looking section. */}
           <div style={{ padding: '1.75rem 2.5rem 2.5rem' }}>
-            {project.objective && project.objective.trim() && (
+            {!isRichTextEmpty(project.objective) && (
               <>
                 <div style={{
                   fontSize: '0.8rem',
@@ -379,18 +380,19 @@ function ProjectModal({ project, index, categories, onClose }) {
                 }}>
                   Objective
                 </div>
-                <div style={{
-                  background: 'rgba(0, 212, 255, 0.03)',
-                  borderLeft: '3px solid var(--accent)',
-                  borderRadius: '0 10px 10px 0',
-                  padding: '1rem 1.25rem',
-                  fontSize: '0.98rem',
-                  color: 'var(--text-secondary)',
-                  marginBottom: '2rem',
-                  lineHeight: 1.6,
-                }}>
-                  {project.objective}
-                </div>
+                <RichText
+                  html={project.objective}
+                  style={{
+                    background: 'rgba(0, 212, 255, 0.03)',
+                    borderLeft: '3px solid var(--accent)',
+                    borderRadius: '0 10px 10px 0',
+                    padding: '1rem 1.25rem',
+                    fontSize: '0.98rem',
+                    color: 'var(--text-secondary)',
+                    marginBottom: '2rem',
+                    lineHeight: 1.6,
+                  }}
+                />
               </>
             )}
 
@@ -433,8 +435,11 @@ function ProjectModal({ project, index, categories, onClose }) {
                         fontSize: '0.95rem',
                         lineHeight: 1.65,
                         paddingTop: 4,
+                        flex: 1,
+                        minWidth: 0,
                       }}>
-                        <strong style={{ color: 'var(--text)' }}>{step.title}:</strong> {renderStepText(step.text)}
+                        <strong style={{ color: 'var(--text)', display: 'block', marginBottom: 2 }}>{step.title}</strong>
+                        <RichText html={step.text} />
                       </div>
                     </div>
                   ))}
@@ -515,7 +520,7 @@ function ProjectModal({ project, index, categories, onClose }) {
                         fontSize: '1.2rem',
                         textShadow: '0 0 10px var(--accent-green)',
                       }}>✓</span>
-                      {outcome}
+                      <RichText html={outcome} className="outcome-rich" />
                     </li>
                   ))}
                 </ul>
@@ -723,6 +728,7 @@ export default function Projects() {
   const [rawProjects, setRawProjects] = useState([])
   const [categories, setCategories] = useState([])
   const [loaded, setLoaded] = useState(false)
+  const heading = useSectionHeading('projects', { num: '02', title: 'Project' })
 
   useEffect(() => {
     let cancelled = false
@@ -747,11 +753,11 @@ export default function Projects() {
 
   const enabledGroupSlugs = new Set(groups.map((g) => g.slug))
   const enabledCategorySlugs = new Set(subcategories.map((c) => c.slug))
-  // A project with a link that's been explicitly toggled off is hidden entirely, same
-  // as a disabled taxonomy category — `linkEnabled !== false` keeps every project
-  // without a link at all (the vast majority) fully visible by default.
+  // `enabled !== false` hides a disabled project entirely, same as a disabled taxonomy
+  // category — separate from `linkEnabled` below, which only ever controls whether the
+  // "Visit Project" button renders inside a project that's still fully visible.
   const projects = rawProjects.filter(
-    (p) => enabledGroupSlugs.has(p.group) && enabledCategorySlugs.has(p.category) && p.linkEnabled !== false
+    (p) => enabledGroupSlugs.has(p.group) && enabledCategorySlugs.has(p.category) && p.enabled !== false
   )
 
   const handleFilterChange = (newFilter) => {
@@ -815,7 +821,7 @@ export default function Projects() {
       }}>
 
         <div style={{ padding: 'clamp(2.5rem, 6vw, 4rem) clamp(1rem, 4vw, 2rem) 0' }}>
-          <SectionHeader num="02" title="Project" />
+          <SectionHeader num={heading.num} title={heading.title} />
         </div>
 
 

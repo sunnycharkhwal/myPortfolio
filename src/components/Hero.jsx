@@ -2,30 +2,92 @@ import { useState, useEffect } from 'react'
 import Button from '@mui/material/Button'
 import scrollTo from '../utils/scrollTo.js'
 import { HiLightningBolt } from 'react-icons/hi'
-import { HERO_ROLES, HERO_TECH_STACK, HERO_STATS } from '../data/index.js'
+import { getHero } from '../api/heroApi.js'
+import { resolveIcon } from '../utils/iconRegistry.js'
+import { sanitizeRichText } from '../utils/sanitizeRichText.js'
+
+// Fails open to this exact content (not an empty/blank hero) both before the fetch
+// resolves and if it ever fails — this is the first thing a visitor sees, so "briefly
+// blank" or "broken" are worse outcomes than "briefly the old hardcoded content", same
+// spirit as Experience.jsx/Projects.jsx failing open to empty arrays, just with real
+// defaults here instead since an empty hero reads as broken in a way an empty project
+// grid doesn't.
+const DEFAULT_HERO = {
+  firstName: 'Sunny',
+  lastName: 'Charkhwal',
+  statusBadge: 'Open to Opportunities',
+  roles: ['DevOps Engineer', 'Cloud & Infrastructure Engineer', 'CI/CD Specialist', 'Former Lead Frontend Developer'],
+  bio:
+    '<p>Crafting <span style="color: #00d4ff; font-weight: 600">scalable cloud infrastructure</span> and automating ' +
+    '<span style="color: #a855f7; font-weight: 600">CI/CD pipelines</span> on AWS, backed by ' +
+    '<span style="color: #10b981; font-weight: 600">5+ years</span> of engineering experience — including ' +
+    '<span style="color: #f97316; font-weight: 600">2+ years</span> leading production ' +
+    '<span style="color: #61DAFB; font-weight: 600">React.js</span> teams before transitioning into DevOps.</p>',
+  stats: [
+    { value: '5+', label: 'Years Experience', color: '#00d4ff' },
+    { value: '16+', label: 'Projects Delivered', color: '#a855f7' },
+    { value: '99.9%', label: 'Uptime Achieved', color: '#10b981' },
+  ],
+  techStack: [
+    { iconKey: 'SiDocker', name: 'Docker', color: '#2496ED' },
+    { iconKey: 'SiKubernetes', name: 'Kubernetes', color: '#326CE5' },
+    { iconKey: 'SiTerraform', name: 'Terraform', color: '#7B42BC' },
+    { iconKey: 'FaAws', name: 'AWS', color: '#FF9900' },
+    { iconKey: 'SiHelm', name: 'Helm', color: '#0F1689' },
+    { iconKey: 'SiGithubactions', name: 'GitHub', color: '#2088FF' },
+    { iconKey: 'SiAnsible', name: 'Ansible', color: '#EE0000' },
+    { iconKey: 'SiPrometheus', name: 'Prometheus', color: '#E6522C' },
+  ],
+}
 
 export default function Hero() {
+  const [hero, setHero] = useState(DEFAULT_HERO)
   const [typedRole, setTypedRole] = useState('')
   const [showCursor, setShowCursor] = useState(true)
   const [isLoaded, setIsLoaded] = useState(false)
   const [activeOrbit, setActiveOrbit] = useState(0)
   const [pulseWave, setPulseWave] = useState(0)
-  
+
   const [roleIndex, setRoleIndex] = useState(0)
+
+  // Disabling a stat tile or tech icon from the dashboard hides it here without
+  // deleting it from the admin's list — same `enabled !== false` filtering every other
+  // public section already applies to its own content.
+  const visibleStats = hero.stats.filter((s) => s.enabled !== false)
+  const visibleTechStack = hero.techStack.filter((t) => t.enabled !== false)
+
+  // Public content fetched live from the database — same self-contained fetch pattern
+  // as Experience.jsx/Projects.jsx (no Redux for the data itself). Merges over
+  // DEFAULT_HERO rather than replacing it outright, so a hero doc missing a field
+  // (e.g. saved before `techStack` was ever filled in) still renders that field's
+  // default instead of an empty section.
+  useEffect(() => {
+    let cancelled = false
+    getHero()
+      .then((data) => {
+        if (cancelled || !data || Object.keys(data).length === 0) return
+        setHero((prev) => ({ ...prev, ...data }))
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoaded(true), 100)
     return () => clearTimeout(timer)
   }, [])
-  
+
 
   useEffect(() => {
+    if (visibleTechStack.length === 0) return
     const interval = setInterval(() => {
-      setActiveOrbit(prev => (prev + 1) % HERO_TECH_STACK.length)
+      setActiveOrbit(prev => (prev + 1) % visibleTechStack.length)
     }, 1500)
     return () => clearInterval(interval)
-  }, [])
-  
+  }, [visibleTechStack.length])
+
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -33,13 +95,19 @@ export default function Hero() {
     }, 2000)
     return () => clearInterval(interval)
   }, [])
-  
+
   useEffect(() => {
-    const currentRole = HERO_ROLES[roleIndex]
+    if (hero.roles.length === 0) {
+      setTypedRole('')
+      return
+    }
+    // roleIndex can be stale relative to a just-arrived (shorter) roles list — clamp
+    // it back into range rather than reading undefined off the end of the array.
+    const currentRole = hero.roles[roleIndex % hero.roles.length]
     let charIndex = 0
     let isDeleting = false
     let timeout
-    
+
     const type = () => {
       if (!isDeleting) {
         setTypedRole(currentRole.substring(0, charIndex + 1))
@@ -54,17 +122,17 @@ export default function Hero() {
         charIndex--
         if (charIndex === 0) {
           isDeleting = false
-          setRoleIndex((prev) => (prev + 1) % HERO_ROLES.length)
+          setRoleIndex((prev) => (prev + 1) % hero.roles.length)
           return
         }
         timeout = setTimeout(type, 50)
       }
     }
-    
+
     timeout = setTimeout(type, 800)
     return () => clearTimeout(timeout)
-  }, [roleIndex])
-  
+  }, [roleIndex, hero.roles])
+
   useEffect(() => {
     const interval = setInterval(() => setShowCursor(c => !c), 530)
     return () => clearInterval(interval)
@@ -116,7 +184,7 @@ export default function Hero() {
             <span className="dot-ping" />
           </span>
           <span className="status-text">
-            {'Open to Opportunities'.split('').map((char, i) => (
+            {hero.statusBadge.split('').map((char, i) => (
               <span 
                 key={i} 
                 className="status-letter"
@@ -172,7 +240,7 @@ export default function Hero() {
             transition: 'all 0.9s cubic-bezier(0.16, 1, 0.3, 1)',
             transitionDelay: '0.3s',
           }}>
-            Sunny
+            {hero.firstName}
           </span>
           <span className="gradient-name" style={{
             display: 'block',
@@ -181,7 +249,7 @@ export default function Hero() {
             transition: 'all 0.9s cubic-bezier(0.16, 1, 0.3, 1)',
             transitionDelay: '0.4s',
           }}>
-            Charkhwal
+            {hero.lastName}
           </span>
         </h1>
 
@@ -217,23 +285,21 @@ export default function Hero() {
         </div>
 
         
-        <p style={{
-          fontSize: 'clamp(1.05rem, 1.6vw, 1.2rem)',
-          color: 'var(--text-secondary)',
-          lineHeight: 1.85,
-          marginBottom: '2.5rem',
-          opacity: isLoaded ? 1 : 0,
-          transform: isLoaded ? 'translateX(0)' : 'translateX(-30px)',
-          transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
-          transitionDelay: '0.6s',
-          maxWidth: 560,
-        }}>
-          Crafting <span style={{ color: 'var(--accent)', fontWeight: 600 }}>scalable cloud infrastructure</span> and
-          automating <span style={{ color: 'var(--accent-purple)', fontWeight: 600 }}>CI/CD pipelines</span> on AWS, backed
-          by <span style={{ color: 'var(--accent-green)', fontWeight: 600 }}>5+ years</span> of engineering experience —
-          including <span style={{ color: '#f97316', fontWeight: 600 }}>2+ years</span> leading production{' '}
-          <span style={{ color: '#61DAFB', fontWeight: 600 }}>React.js</span> teams before transitioning into DevOps.
-        </p>
+        <div
+          className="rich-content"
+          style={{
+            fontSize: 'clamp(1.05rem, 1.6vw, 1.2rem)',
+            color: 'var(--text-secondary)',
+            lineHeight: 1.85,
+            marginBottom: '2.5rem',
+            opacity: isLoaded ? 1 : 0,
+            transform: isLoaded ? 'translateX(0)' : 'translateX(-30px)',
+            transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
+            transitionDelay: '0.6s',
+            maxWidth: 560,
+          }}
+          dangerouslySetInnerHTML={{ __html: sanitizeRichText(hero.bio) }}
+        />
 
         
         <div style={{
@@ -276,8 +342,10 @@ export default function Hero() {
           <Button
             variant="outlined"
             component="a"
-            href="/Sunny-Charkhwal-Resume.pdf"
-            download="Sunny-Charkhwal-Resume.pdf"
+            href={hero.resumeUrl || '/Sunny-Charkhwal-Resume.pdf'}
+            download={`${hero.firstName}-${hero.lastName}-Resume.pdf`}
+            target={hero.resumeUrl && !hero.resumeUrl.startsWith('data:') ? '_blank' : undefined}
+            rel={hero.resumeUrl && !hero.resumeUrl.startsWith('data:') ? 'noopener noreferrer' : undefined}
             startIcon={
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M12 3v12" />
@@ -316,7 +384,7 @@ export default function Hero() {
           transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
           transitionDelay: '0.8s',
         }}>
-          {HERO_STATS.map((stat) => (
+          {visibleStats.map((stat) => (
             <div key={stat.label} style={{ textAlign: 'left', padding: '12px 0', borderLeft: `3px solid ${stat.color}30`, paddingLeft: 16 }}>
               <div style={{
                 fontFamily: 'var(--mono)',
@@ -405,10 +473,10 @@ export default function Hero() {
         </div>
         
         
-        {HERO_TECH_STACK.slice(0, 4).map((tech, i) => {
+        {visibleTechStack.slice(0, 4).map((tech, i) => {
           const angle = (i / 4) * 360 - 45
           const isActive = activeOrbit === i
-          const IconComponent = tech.icon
+          const IconComponent = resolveIcon(tech.iconKey)
           return (
             <div
               key={tech.name}
@@ -426,10 +494,10 @@ export default function Hero() {
         })}
         
         
-        {HERO_TECH_STACK.slice(4).map((tech, i) => {
+        {visibleTechStack.slice(4).map((tech, i) => {
           const angle = (i / 4) * 360 - 22.5
           const isActive = activeOrbit === i + 4
-          const IconComponent = tech.icon
+          const IconComponent = resolveIcon(tech.iconKey)
           return (
             <div
               key={tech.name}

@@ -49,6 +49,13 @@ const experienceSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    // Disabling hides this entry from the public site without deleting it — same
+    // enforcement style as ProjectCategory.enabled/ContentPreset.enabled. The dashboard
+    // still shows disabled entries so they can be re-enabled or edited.
+    enabled: {
+      type: Boolean,
+      default: true,
+    },
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',

@@ -123,16 +123,7 @@ export default function ProjectCategoryFormModal({ open, editingItem, lockedPare
         },
       }}
     >
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: '10%',
-          right: '10%',
-          height: 1,
-          background: 'linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.5), rgba(168, 85, 247, 0.5), transparent)',
-        }}
-      />
+      <div className="dash-modal-hairline" />
       <IconButton
         onClick={onClose}
         aria-label="Close"
@@ -149,34 +140,24 @@ export default function ProjectCategoryFormModal({ open, editingItem, lockedPare
         <CloseIcon fontSize="small" />
       </IconButton>
 
-      <form onSubmit={handleSubmit} style={{ padding: '2.25rem 2rem 2rem' }}>
-        <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text)', marginBottom: '0.3rem' }}>
+      <form onSubmit={handleSubmit} className="dash-modal-form">
+        <h2 className="dash-modal-title dash-modal-title--sm dash-modal-title--tight">
           {editingItem ? 'Edit' : 'New'} {isSubcategory ? 'Sub-category' : 'Group'}
         </h2>
         {isSubcategory && (lockedParentLabel || editingItem?.parentLabel) && (
-          <p style={{ fontSize: 12, color: 'var(--muted)', marginBottom: '1rem' }}>
+          <p className="dash-modal-subtitle">
             Under: {lockedParentLabel || editingItem?.parentLabel}
           </p>
         )}
-        {!isSubcategory && <div style={{ marginBottom: '1rem' }} />}
+        {!isSubcategory && <div className="dash-modal-title-spacer" />}
 
         {(localError || (mutationStatus === 'failed' && error)) && (
-          <div
-            style={{
-              marginBottom: '1.25rem',
-              padding: '10px 14px',
-              borderRadius: 10,
-              background: 'rgba(255, 107, 107, 0.1)',
-              border: '1px solid rgba(255, 107, 107, 0.3)',
-              color: 'var(--accent-pink)',
-              fontSize: 13,
-            }}
-          >
+          <div className="dash-alert dash-alert--error">
             {localError || error}
           </div>
         )}
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div className="dash-field-column">
           <TextField label="Label" required fullWidth value={form.label} onChange={handleLabelChange} sx={fieldSx} />
           <TextField
             label="Slug"
@@ -190,18 +171,13 @@ export default function ProjectCategoryFormModal({ open, editingItem, lockedPare
             helperText="Stored on projects — avoid changing once in use."
             sx={fieldSx}
           />
-          <div style={{ display: 'flex', gap: '1rem' }}>
-            <div style={{ flex: 1 }}>
+          <div className="dash-row">
+            <div className="dash-flex-1">
               <IconPicker value={form.iconKey} onChange={set('iconKey')} />
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <label style={{ fontSize: 12, color: 'var(--text-secondary)' }}>Color</label>
-              <input
-                type="color"
-                value={form.color}
-                onChange={set('color')}
-                style={{ width: 48, height: 40, borderRadius: 8, border: '1px solid var(--border)', background: 'transparent', cursor: 'pointer' }}
-              />
+            <div className="dash-color-field">
+              <label className="dash-field-label dash-field-label--tight">Color</label>
+              <input type="color" value={form.color} onChange={set('color')} className="dash-color-input" />
             </div>
           </div>
           <TextField label="Display order" type="number" fullWidth value={form.order} onChange={set('order')} sx={fieldSx} />
@@ -213,7 +189,7 @@ export default function ProjectCategoryFormModal({ open, editingItem, lockedPare
                 sx={{ '& .MuiSwitch-switchBase.Mui-checked': { color: 'var(--accent)' } }}
               />
             }
-            label={<span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Enabled (visible on the public site)</span>}
+            label={<span className="dash-switch-label dash-switch-label--md">Enabled (visible on the public site)</span>}
           />
         </div>
 

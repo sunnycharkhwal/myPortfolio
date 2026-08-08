@@ -17,7 +17,7 @@ export default function ExperiencePanel() {
   }, [dispatch])
 
   return (
-    <div style={{ padding: 'clamp(1.25rem, 4vw, 2rem)' }}>
+    <div className="dash-panel">
       <WorkHistorySection />
       <AchievementsSection />
       <EducationSection />

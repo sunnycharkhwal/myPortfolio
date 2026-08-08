@@ -5,9 +5,11 @@ import IconButton from '@mui/material/IconButton'
 import CloseIcon from '@mui/icons-material/Close'
 import TextField from '@mui/material/TextField'
 import Button from '@mui/material/Button'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import Switch from '@mui/material/Switch'
 import { createEducationEntry, updateEducationEntry } from '../../store/experienceSectionSlice.js'
 
-const emptyForm = { degree: '', field: '', institution: '', location: '', period: '', order: 0 }
+const emptyForm = { degree: '', field: '', institution: '', location: '', period: '', order: 0, enabled: true }
 
 const fieldSx = {
   '& .MuiOutlinedInput-root': {
@@ -38,6 +40,7 @@ export default function EducationFormModal({ open, editingItem, onClose, onSaved
         location: editingItem.location || '',
         period: editingItem.period || '',
         order: editingItem.order ?? 0,
+        enabled: editingItem.enabled ?? true,
       })
     } else {
       setForm(emptyForm)
@@ -85,16 +88,7 @@ export default function EducationFormModal({ open, editingItem, onClose, onSaved
         },
       }}
     >
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: '10%',
-          right: '10%',
-          height: 1,
-          background: 'linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.5), rgba(168, 85, 247, 0.5), transparent)',
-        }}
-      />
+      <div className="dash-modal-hairline" />
       <IconButton
         onClick={onClose}
         aria-label="Close"
@@ -111,28 +105,18 @@ export default function EducationFormModal({ open, editingItem, onClose, onSaved
         <CloseIcon fontSize="small" />
       </IconButton>
 
-      <form onSubmit={handleSubmit} style={{ padding: '2.25rem 2rem 2rem' }}>
-        <h2 style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--text)', marginBottom: '1.5rem' }}>
+      <form onSubmit={handleSubmit} className="dash-modal-form">
+        <h2 className="dash-modal-title">
           {editingItem ? 'Edit Education Entry' : 'New Education Entry'}
         </h2>
 
         {(localError || (mutationStatus === 'failed' && error)) && (
-          <div
-            style={{
-              marginBottom: '1.25rem',
-              padding: '10px 14px',
-              borderRadius: 10,
-              background: 'rgba(255, 107, 107, 0.1)',
-              border: '1px solid rgba(255, 107, 107, 0.3)',
-              color: 'var(--accent-pink)',
-              fontSize: 13,
-            }}
-          >
+          <div className="dash-alert dash-alert--error">
             {localError || error}
           </div>
         )}
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div className="dash-field-column">
           <TextField label="Degree" required fullWidth value={form.degree} onChange={set('degree')} sx={fieldSx} />
           <TextField label="Field of study" fullWidth value={form.field} onChange={set('field')} sx={fieldSx} />
           <TextField
@@ -146,6 +130,16 @@ export default function EducationFormModal({ open, editingItem, onClose, onSaved
           <TextField label="Location" fullWidth value={form.location} onChange={set('location')} sx={fieldSx} />
           <TextField label="Period" required fullWidth value={form.period} onChange={set('period')} sx={fieldSx} />
           <TextField label="Display order" type="number" fullWidth value={form.order} onChange={set('order')} sx={fieldSx} />
+          <FormControlLabel
+            control={
+              <Switch
+                checked={form.enabled}
+                onChange={(e) => setForm((f) => ({ ...f, enabled: e.target.checked }))}
+                sx={{ '& .MuiSwitch-switchBase.Mui-checked': { color: 'var(--accent)' } }}
+              />
+            }
+            label={<span className="dash-switch-label">Enabled — when off, this entry is hidden from the public site</span>}
+          />
         </div>
 
         <Button

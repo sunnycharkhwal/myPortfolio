@@ -1,68 +1,51 @@
+import { useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { logout } from '../../store/authSlice.js'
+import ConfirmDialog from './ConfirmDialog.jsx'
 
 const tabs = [
+  { id: 'hero', label: 'Hero' },
   { id: 'projects', label: 'Projects' },
+  { id: 'skills', label: 'Skills' },
   { id: 'experience', label: 'Experience' },
+  { id: 'contact', label: 'Contact' },
+  { id: 'footer', label: 'Footer' },
+  { id: 'settings', label: 'Settings' },
 ]
 
 export default function DashboardTopbar({ activeTab, onTabChange }) {
   const dispatch = useDispatch()
   const navigate = useNavigate()
+  // Same confirm-before-destructive-action pattern every delete button in this
+  // dashboard already uses — logging out isn't destructive to data, but it does end
+  // the session, so a stray click shouldn't do it without asking first.
+  const [confirmOpen, setConfirmOpen] = useState(false)
 
-  const handleLogout = () => {
+  const confirmLogout = () => {
+    setConfirmOpen(false)
     dispatch(logout())
     navigate('/login', { replace: true })
   }
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '1rem clamp(1rem, 4vw, 2rem)',
-        borderBottom: '1px solid var(--border)',
-        background: 'rgba(18, 18, 26, 0.6)',
-      }}
-    >
-      <div style={{ fontFamily: 'var(--mono)', fontSize: 20, fontWeight: 700 }}>
-        <span style={{ color: 'var(--accent)' }}>S</span>
-        <span style={{ color: 'var(--accent-purple)' }}>C</span>
-        <span style={{ color: 'var(--muted)' }}>:</span>
-        <span style={{ color: 'var(--accent-green)' }}>//</span>
-        <span style={{ color: 'var(--text)' }}>dashboard</span>
+    <div className="dash-topbar">
+      <div className="dash-logo">
+        <span className="dash-logo__s">S</span>
+        <span className="dash-logo__c">C</span>
+        <span className="dash-logo__colon">:</span>
+        <span className="dash-logo__slash">//</span>
+        <span className="dash-logo__label">dashboard</span>
       </div>
 
-      <div
-        style={{
-          display: 'flex',
-          gap: 4,
-          background: 'rgba(255,255,255,0.03)',
-          border: '1px solid rgba(255,255,255,0.06)',
-          borderRadius: 50,
-          padding: 4,
-        }}
-      >
+      <div className="dash-topbar__tabs">
         {tabs.map((t) => {
           const isActive = activeTab === t.id
           return (
             <button
               key={t.id}
               onClick={() => onTabChange(t.id)}
-              style={{
-                padding: '8px 18px',
-                borderRadius: 30,
-                border: 'none',
-                background: isActive
-                  ? 'linear-gradient(135deg, rgba(0, 212, 255, 0.15) 0%, rgba(168, 85, 247, 0.1) 100%)'
-                  : 'transparent',
-                color: isActive ? 'var(--accent)' : 'var(--text-secondary)',
-                fontSize: 13.5,
-                fontWeight: isActive ? 600 : 500,
-                cursor: 'pointer',
-              }}
+              className={`dash-topbar__tab${isActive ? ' active' : ''}`}
             >
               {t.label}
             </button>
@@ -70,20 +53,18 @@ export default function DashboardTopbar({ activeTab, onTabChange }) {
         })}
       </div>
 
-      <button
-        onClick={handleLogout}
-        style={{
-          padding: '8px 16px',
-          borderRadius: 8,
-          border: '1px solid var(--border)',
-          background: 'rgba(255,255,255,0.03)',
-          color: 'var(--text-secondary)',
-          fontSize: 13,
-          cursor: 'pointer',
-        }}
-      >
+      <button onClick={() => setConfirmOpen(true)} className="dash-topbar__logout">
         Logout
       </button>
+
+      <ConfirmDialog
+        open={confirmOpen}
+        title="Log out?"
+        message="You'll need to sign in again to make any more changes."
+        confirmLabel="Logout"
+        onConfirm={confirmLogout}
+        onCancel={() => setConfirmOpen(false)}
+      />
     </div>
   )
 }

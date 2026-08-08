@@ -5,11 +5,13 @@ import IconButton from '@mui/material/IconButton'
 import CloseIcon from '@mui/icons-material/Close'
 import TextField from '@mui/material/TextField'
 import Button from '@mui/material/Button'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import Switch from '@mui/material/Switch'
 import { createAchievementEntry, updateAchievementEntry } from '../../store/experienceSectionSlice.js'
 import { ICON_KEYS } from '../../utils/iconRegistry.js'
 import IconPicker from './IconPicker.jsx'
 
-const emptyForm = { iconKey: ICON_KEYS[0], value: '', label: '', color: '#00d4ff', order: 0 }
+const emptyForm = { iconKey: ICON_KEYS[0], value: '', label: '', color: '#00d4ff', order: 0, enabled: true }
 
 const fieldSx = {
   '& .MuiOutlinedInput-root': {
@@ -38,6 +40,7 @@ export default function AchievementFormModal({ open, editingItem, onClose, onSav
         label: editingItem.label || '',
         color: editingItem.color || '#00d4ff',
         order: editingItem.order ?? 0,
+        enabled: editingItem.enabled ?? true,
       })
     } else {
       setForm(emptyForm)
@@ -85,16 +88,7 @@ export default function AchievementFormModal({ open, editingItem, onClose, onSav
         },
       }}
     >
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: '10%',
-          right: '10%',
-          height: 1,
-          background: 'linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.5), rgba(168, 85, 247, 0.5), transparent)',
-        }}
-      />
+      <div className="dash-modal-hairline" />
       <IconButton
         onClick={onClose}
         aria-label="Close"
@@ -111,45 +105,36 @@ export default function AchievementFormModal({ open, editingItem, onClose, onSav
         <CloseIcon fontSize="small" />
       </IconButton>
 
-      <form onSubmit={handleSubmit} style={{ padding: '2.25rem 2rem 2rem' }}>
-        <h2 style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--text)', marginBottom: '1.5rem' }}>
+      <form onSubmit={handleSubmit} className="dash-modal-form">
+        <h2 className="dash-modal-title">
           {editingItem ? 'Edit Achievement' : 'New Achievement'}
         </h2>
 
         {(localError || (mutationStatus === 'failed' && error)) && (
-          <div
-            style={{
-              marginBottom: '1.25rem',
-              padding: '10px 14px',
-              borderRadius: 10,
-              background: 'rgba(255, 107, 107, 0.1)',
-              border: '1px solid rgba(255, 107, 107, 0.3)',
-              color: 'var(--accent-pink)',
-              fontSize: 13,
-            }}
-          >
+          <div className="dash-alert dash-alert--error">
             {localError || error}
           </div>
         )}
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div className="dash-field-column">
           <IconPicker value={form.iconKey} onChange={set('iconKey')} />
           <TextField label="Value (e.g. 15+)" required fullWidth value={form.value} onChange={set('value')} sx={fieldSx} />
           <TextField label="Label" required fullWidth value={form.label} onChange={set('label')} sx={fieldSx} />
-          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          <div className="dash-color-row">
             <TextField label="Color" fullWidth value={form.color} onChange={set('color')} sx={fieldSx} />
-            <span
-              style={{
-                width: 24,
-                height: 24,
-                borderRadius: '50%',
-                background: form.color,
-                border: '1px solid var(--border)',
-                flexShrink: 0,
-              }}
-            />
+            <span className="dash-color-swatch" style={{ '--swatch-color': form.color }} />
           </div>
           <TextField label="Display order" type="number" fullWidth value={form.order} onChange={set('order')} sx={fieldSx} />
+          <FormControlLabel
+            control={
+              <Switch
+                checked={form.enabled}
+                onChange={(e) => setForm((f) => ({ ...f, enabled: e.target.checked }))}
+                sx={{ '& .MuiSwitch-switchBase.Mui-checked': { color: 'var(--accent)' } }}
+              />
+            }
+            label={<span className="dash-switch-label">Enabled — when off, this tile is hidden from the public site</span>}
+          />
         </div>
 
         <Button

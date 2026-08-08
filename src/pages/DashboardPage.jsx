@@ -1,11 +1,16 @@
 import { useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import DashboardTopbar from '../components/dashboard/DashboardTopbar.jsx'
+import HeroPanel from '../components/dashboard/HeroPanel.jsx'
 import ProjectsPanel from '../components/dashboard/ProjectsPanel.jsx'
 import ExperiencePanel from '../components/dashboard/ExperiencePanel.jsx'
+import SkillsPanel from '../components/dashboard/SkillsPanel.jsx'
+import ContactPanel from '../components/dashboard/ContactPanel.jsx'
+import FooterPanel from '../components/dashboard/FooterPanel.jsx'
+import SettingsPanel from '../components/dashboard/SettingsPanel.jsx'
 import ToastContainer from '../components/dashboard/ToastContainer.jsx'
 
-const VALID_TABS = ['projects', 'experience']
+const VALID_TABS = ['hero', 'projects', 'skills', 'experience', 'contact', 'footer', 'settings']
 
 export default function DashboardPage() {
   // Active tab lives in the URL (?tab=), not local state — a refresh reloads the page
@@ -26,9 +31,23 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="dashboard-page" style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+    <div className="dashboard-page">
       <DashboardTopbar activeTab={activeTab} onTabChange={handleTabChange} />
-      {activeTab === 'projects' ? <ProjectsPanel /> : <ExperiencePanel />}
+      {activeTab === 'hero' ? (
+        <HeroPanel />
+      ) : activeTab === 'projects' ? (
+        <ProjectsPanel />
+      ) : activeTab === 'skills' ? (
+        <SkillsPanel />
+      ) : activeTab === 'contact' ? (
+        <ContactPanel />
+      ) : activeTab === 'footer' ? (
+        <FooterPanel />
+      ) : activeTab === 'settings' ? (
+        <SettingsPanel />
+      ) : (
+        <ExperiencePanel />
+      )}
       <ToastContainer />
     </div>
   )

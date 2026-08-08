@@ -10,7 +10,10 @@ import Button from '@mui/material/Button'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import Switch from '@mui/material/Switch'
 import { createProject, updateProject } from '../../store/projectsSlice.js'
+import { fetchContentPresets } from '../../store/contentPresetsSlice.js'
 import { fileToDataUrl } from '../../utils/fileToDataUrl.js'
+import { htmlToPlainText, isRichTextEmpty } from '../../utils/htmlToPlainText.js'
+import RichTextEditor from './RichTextEditor.jsx'
 
 // Files larger than this are rejected client-side with an inline message rather than
 // silently bloating the Mongo document — there's no real object storage behind this
@@ -26,6 +29,7 @@ const emptyForm = {
   objective: '',
   techOrAws: '',
   order: 0,
+  enabled: true,
   link: '',
   linkEnabled: true,
 }
@@ -58,9 +62,26 @@ export default function ProjectFormModal({ open, editingItem, onClose, onSaved }
   // so editing a project that already uses one doesn't get stuck.
   const { items: categoryItems } = useSelector((s) => s.projectCategories)
   const groups = categoryItems.filter((c) => !c.parent).sort((a, b) => a.order - b.order)
+  const { items: presetItems } = useSelector((s) => s.contentPresets)
   const [form, setForm] = useState(emptyForm)
+  // "Attach a pre-defined item" library — one flat fetch, filtered client-side by kind,
+  // enabled-ness, AND the project's currently-selected group (form.group) — a Frontend
+  // project only ever offers Frontend-tagged presets, never DevOps ones, so switching
+  // Group in the form above live-updates every picker below it. Picking one from any of
+  // the pickers copies its text/rows into the form fields, which stay fully editable
+  // afterward — never a locked reference back to the preset. Declared after `form`
+  // since it reads form.group.
+  const enabledPresets = (kind) => presetItems.filter((p) => p.kind === kind && p.enabled && p.group === form.group)
+  const objectivePresets = enabledPresets('objective')
+  const stepPresets = enabledPresets('step')
+  const techPresets = enabledPresets('tech')
+  const outcomePresets = enabledPresets('outcome')
   const [stepRows, setStepRows] = useState([])
-  const [outcomesText, setOutcomesText] = useState('')
+  // Each entry is an HTML string (RichTextEditor's native format), not a plain-text
+  // line — replaced the old single "one per line" textarea with repeatable rows
+  // (same pattern as stepRows) once each outcome could hold real formatting, since a
+  // single big rich-text blob has no reliable way to split back into an array on save.
+  const [outcomeRows, setOutcomeRows] = useState([])
   const [imageList, setImageList] = useState([])
   const [imageUrlInput, setImageUrlInput] = useState('')
   const [downloadRows, setDownloadRows] = useState([])
@@ -77,17 +98,24 @@ export default function ProjectFormModal({ open, editingItem, onClose, onSaved }
         objective: editingItem.objective || '',
         techOrAws: toDisplayList(editingItem.group === 'frontend' ? editingItem.techStack : editingItem.aws),
         order: editingItem.order ?? 0,
+        enabled: editingItem.enabled ?? true,
         link: editingItem.link || '',
         linkEnabled: editingItem.linkEnabled ?? true,
       })
       setStepRows((editingItem.steps || []).map((s) => ({ ...s })))
-      setOutcomesText((editingItem.outcomes || []).join('\n'))
+      setOutcomeRows([...(editingItem.outcomes || [])])
       setImageList([...(editingItem.images || [])])
       setDownloadRows((editingItem.downloads || []).map((d) => ({ ...d })))
     } else {
       setForm(emptyForm)
-      setStepRows([])
-      setOutcomesText('')
+      // Pre-seed one empty row each — an existing project always has at least one step/
+      // outcome already, so its editors are visible the instant the modal opens; a brand
+      // new project had zero rows and therefore showed no rich-text editor at all until
+      // "+ Add step"/"+ Add outcome" was clicked. Starting with one empty row makes New
+      // Project open to the same visible state as Edit Project. Still fully removable —
+      // this isn't a hidden minimum, submit still requires at least one real outcome.
+      setStepRows([{ title: '', text: '' }])
+      setOutcomeRows([''])
       setImageList([])
       setDownloadRows([])
     }
@@ -95,7 +123,49 @@ export default function ProjectFormModal({ open, editingItem, onClose, onSaved }
     setLocalError(null)
   }, [open, editingItem])
 
+  useEffect(() => {
+    dispatch(fetchContentPresets())
+  }, [dispatch])
+
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }))
+
+  // Every picker below resets its own select back to the placeholder immediately after
+  // firing (value stays '') — they're one-shot "insert" actions, not a persistent
+  // selection, so re-picking the same preset twice (e.g. to add it again) just works.
+  const insertObjectivePreset = (e) => {
+    const preset = objectivePresets.find((p) => p._id === e.target.value)
+    if (!preset) return
+    // Both sides are HTML fragments (RichTextEditor's native format) — concatenating
+    // them is valid HTML (two adjacent block elements), unlike the old plain-text
+    // version which needed an explicit "\n\n" separator.
+    setForm((f) => ({ ...f, objective: isRichTextEmpty(f.objective) ? preset.text : f.objective + preset.text }))
+  }
+  const addStepPreset = (e) => {
+    const preset = stepPresets.find((p) => p._id === e.target.value)
+    if (!preset) return
+    setStepRows((rows) => [...rows, { title: preset.stepTitle, text: preset.stepText }])
+  }
+  const addTechPreset = (e) => {
+    const preset = techPresets.find((p) => p._id === e.target.value)
+    if (!preset) return
+    const current = form.techOrAws.split(',').map((s) => s.trim()).filter(Boolean)
+    if (current.includes(preset.text)) return
+    setForm((f) => ({ ...f, techOrAws: [...current, preset.text].join(', ') }))
+  }
+  // Adds a whole new outcome row pre-filled from the preset, rather than appending into
+  // an existing one — outcomes are a list of separate items (each gets its own
+  // checkmark on the public site), not one shared block of text.
+  const addOutcomePreset = (e) => {
+    const preset = outcomePresets.find((p) => p._id === e.target.value)
+    if (!preset) return
+    setOutcomeRows((rows) => [...rows, preset.text])
+  }
+
+  const updateOutcomeRow = (index, html) => {
+    setOutcomeRows((rows) => rows.map((row, i) => (i === index ? html : row)))
+  }
+  const addOutcomeRow = () => setOutcomeRows((rows) => [...rows, ''])
+  const removeOutcomeRow = (index) => setOutcomeRows((rows) => rows.filter((_, i) => i !== index))
 
   const handleGroupChange = (e) => {
     // Changing group invalidates the previously-selected category (categories are
@@ -173,7 +243,7 @@ export default function ProjectFormModal({ open, editingItem, onClose, onSaved }
       setLocalError('At least one image (URL or upload) is required')
       return
     }
-    const outcomes = outcomesText.split('\n').map((s) => s.trim()).filter(Boolean)
+    const outcomes = outcomeRows.filter((html) => !isRichTextEmpty(html))
     if (outcomes.length === 0) {
       setLocalError('At least one outcome is required')
       return
@@ -196,6 +266,7 @@ export default function ProjectFormModal({ open, editingItem, onClose, onSaved }
       steps: stepRows,
       outcomes,
       order: Number(form.order) || 0,
+      enabled: form.enabled,
       link: form.link.trim(),
       linkEnabled: form.linkEnabled,
       downloads,
@@ -231,16 +302,7 @@ export default function ProjectFormModal({ open, editingItem, onClose, onSaved }
         },
       }}
     >
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: '10%',
-          right: '10%',
-          height: 1,
-          background: 'linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.5), rgba(168, 85, 247, 0.5), transparent)',
-        }}
-      />
+      <div className="dash-modal-hairline" />
       <IconButton
         onClick={onClose}
         aria-label="Close"
@@ -257,32 +319,22 @@ export default function ProjectFormModal({ open, editingItem, onClose, onSaved }
         <CloseIcon fontSize="small" />
       </IconButton>
 
-      <form onSubmit={handleSubmit} style={{ padding: '2.25rem 2rem 2rem', maxHeight: '85vh', overflowY: 'auto' }}>
-        <h2 style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--text)', marginBottom: '1.5rem' }}>
+      <form onSubmit={handleSubmit} className="dash-modal-form">
+        <h2 className="dash-modal-title">
           {editingItem ? 'Edit Project' : 'New Project'}
         </h2>
 
         {(localError || (mutationStatus === 'failed' && error)) && (
-          <div
-            style={{
-              marginBottom: '1.25rem',
-              padding: '10px 14px',
-              borderRadius: 10,
-              background: 'rgba(255, 107, 107, 0.1)',
-              border: '1px solid rgba(255, 107, 107, 0.3)',
-              color: 'var(--accent-pink)',
-              fontSize: 13,
-            }}
-          >
+          <div className="dash-alert dash-alert--error">
             {localError || error}
           </div>
         )}
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div className="dash-field-column">
           <TextField label="Title" required fullWidth value={form.title} onChange={set('title')} sx={fieldSx} />
           <TextField label="Subtitle" required fullWidth value={form.subtitle} onChange={set('subtitle')} sx={fieldSx} />
 
-          <div style={{ display: 'flex', gap: '1rem' }}>
+          <div className="dash-field-row">
             <TextField select label="Group" fullWidth value={form.group} onChange={handleGroupChange} sx={fieldSx}>
               {groups.map((g) => (
                 <MenuItem key={g._id} value={g.slug}>
@@ -300,10 +352,10 @@ export default function ProjectFormModal({ open, editingItem, onClose, onSaved }
           </div>
 
           <div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 8 }}>
-              Images {imageList.length === 0 && <span style={{ color: 'var(--accent-pink)' }}>*</span>}
+            <div className="dash-section-label">
+              Images {imageList.length === 0 && <span className="dash-required-asterisk">*</span>}
             </div>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div className="dash-row">
               <TextField
                 label="Paste image URL(s), comma separated"
                 fullWidth
@@ -325,51 +377,25 @@ export default function ProjectFormModal({ open, editingItem, onClose, onSaved }
                 Add
               </Button>
             </div>
-            <label
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-                marginTop: 8,
-                padding: '6px 12px',
-                border: '1px dashed var(--border)',
-                borderRadius: 8,
-                color: 'var(--accent)',
-                fontSize: 12.5,
-                cursor: 'pointer',
-              }}
-            >
+            <label className="dash-upload-label">
               📁 Upload image file(s)
-              <input type="file" accept="image/*" multiple onChange={handleImageFiles} style={{ display: 'none' }} />
+              <input type="file" accept="image/*" multiple onChange={handleImageFiles} className="dash-hidden-input" />
             </label>
 
             {imageList.length > 0 && (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 12 }}>
+              <div className="dash-image-grid">
                 {imageList.map((src, i) => (
-                  <div key={i} style={{ position: 'relative', width: 84, height: 84 }}>
+                  <div key={i} className="dash-image-thumb">
                     <img
                       src={src}
                       alt={`Preview ${i + 1}`}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 10, border: '1px solid var(--border)' }}
+                      className="dash-image-thumb__img"
                     />
                     <button
                       type="button"
                       onClick={() => removeImage(i)}
                       aria-label={`Remove image ${i + 1}`}
-                      style={{
-                        position: 'absolute',
-                        top: -6,
-                        right: -6,
-                        width: 20,
-                        height: 20,
-                        borderRadius: '50%',
-                        border: 'none',
-                        background: 'var(--accent-pink)',
-                        color: '#fff',
-                        fontSize: 12,
-                        lineHeight: '20px',
-                        cursor: 'pointer',
-                      }}
+                      className="dash-image-thumb__remove"
                     >
                       ×
                     </button>
@@ -379,59 +405,84 @@ export default function ProjectFormModal({ open, editingItem, onClose, onSaved }
             )}
           </div>
 
-          <TextField
-            label="Objective"
-            multiline
-            minRows={2}
-            fullWidth
-            value={form.objective}
-            onChange={set('objective')}
-            sx={fieldSx}
-          />
+          <div>
+            <div className="dash-section-label">
+              Objective
+            </div>
+            <RichTextEditor
+              value={form.objective}
+              onChange={(html) => setForm((f) => ({ ...f, objective: html }))}
+              placeholder="What does this project achieve?"
+            />
+          </div>
+          {objectivePresets.length > 0 && (
+            <TextField
+              select
+              label="+ Insert from library"
+              value=""
+              onChange={insertObjectivePreset}
+              size="small"
+              sx={{ ...fieldSx, maxWidth: 280 }}
+            >
+              {objectivePresets.map((p) => {
+                const preview = htmlToPlainText(p.text)
+                return (
+                  <MenuItem key={p._id} value={p._id} sx={{ whiteSpace: 'normal' }}>
+                    {preview.length > 70 ? `${preview.slice(0, 70)}…` : preview}
+                  </MenuItem>
+                )
+              })}
+            </TextField>
+          )}
 
           <div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 8 }}>
+            <div className="dash-section-label">
               Architecture & Steps
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div className="dash-row-group">
               {stepRows.map((row, i) => (
-                <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                <div key={i} className="dash-row dash-row--top">
                   <TextField
                     label={`Step ${i + 1} title`}
                     value={row.title}
                     onChange={(e) => updateStepRow(i, { title: e.target.value })}
                     sx={{ ...fieldSx, flex: '1 1 35%' }}
                   />
-                  <TextField
-                    label="Text (may include <strong>…</strong>)"
-                    multiline
-                    value={row.text}
-                    onChange={(e) => updateStepRow(i, { text: e.target.value })}
-                    sx={{ ...fieldSx, flex: '1 1 55%' }}
-                  />
+                  <div className="dash-w-55">
+                    <RichTextEditor
+                      value={row.text}
+                      onChange={(html) => updateStepRow(i, { text: html })}
+                      placeholder="Step description"
+                      minHeight={56}
+                    />
+                  </div>
                   <IconButton size="small" onClick={() => removeStepRow(i)} sx={{ color: 'var(--accent-pink)', marginTop: 1 }}>
                     <DeleteIcon fontSize="small" />
                   </IconButton>
                 </div>
               ))}
             </div>
-            <button
-              type="button"
-              onClick={addStepRow}
-              style={{
-                marginTop: 10,
-                background: 'none',
-                border: '1px dashed var(--border)',
-                borderRadius: 8,
-                padding: '8px 14px',
-                color: 'var(--accent)',
-                fontSize: 12.5,
-                cursor: 'pointer',
-                width: '100%',
-              }}
-            >
-              + Add step
-            </button>
+            <div className="dash-add-row-line">
+              <button type="button" onClick={addStepRow} className="dash-add-row-btn dash-add-row-btn--inline">
+                + Add step
+              </button>
+              {stepPresets.length > 0 && (
+                <TextField
+                  select
+                  label="+ Add from library"
+                  value=""
+                  onChange={addStepPreset}
+                  size="small"
+                  sx={{ ...fieldSx, flex: 1 }}
+                >
+                  {stepPresets.map((p) => (
+                    <MenuItem key={p._id} value={p._id}>
+                      {p.stepTitle}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              )}
+            </div>
           </div>
 
           <TextField
@@ -441,17 +492,64 @@ export default function ProjectFormModal({ open, editingItem, onClose, onSaved }
             onChange={set('techOrAws')}
             sx={fieldSx}
           />
+          {techPresets.length > 0 && (
+            <TextField
+              select
+              label="+ Add from library"
+              value=""
+              onChange={addTechPreset}
+              size="small"
+              sx={{ ...fieldSx, maxWidth: 280 }}
+            >
+              {techPresets.map((p) => (
+                <MenuItem key={p._id} value={p._id}>
+                  {p.text}
+                </MenuItem>
+              ))}
+            </TextField>
+          )}
 
-          <TextField
-            label="Outcomes (one per line)"
-            required
-            multiline
-            minRows={3}
-            fullWidth
-            value={outcomesText}
-            onChange={(e) => setOutcomesText(e.target.value)}
-            sx={fieldSx}
-          />
+          <div>
+            <div className="dash-section-label">
+              Key Outcomes {outcomeRows.every(isRichTextEmpty) && <span className="dash-required-asterisk">*</span>}
+            </div>
+            <div className="dash-row-group">
+              {outcomeRows.map((html, i) => (
+                <div key={i} className="dash-row dash-row--top">
+                  <div className="dash-flex-1">
+                    <RichTextEditor value={html} onChange={(next) => updateOutcomeRow(i, next)} placeholder={`Outcome ${i + 1}`} minHeight={56} />
+                  </div>
+                  <IconButton size="small" onClick={() => removeOutcomeRow(i)} sx={{ color: 'var(--accent-pink)', marginTop: 1 }}>
+                    <DeleteIcon fontSize="small" />
+                  </IconButton>
+                </div>
+              ))}
+            </div>
+            <div className="dash-add-row-line">
+              <button type="button" onClick={addOutcomeRow} className="dash-add-row-btn dash-add-row-btn--inline">
+                + Add outcome
+              </button>
+              {outcomePresets.length > 0 && (
+                <TextField
+                  select
+                  label="+ Add from library"
+                  value=""
+                  onChange={addOutcomePreset}
+                  size="small"
+                  sx={{ ...fieldSx, flex: 1 }}
+                >
+                  {outcomePresets.map((p) => {
+                    const preview = htmlToPlainText(p.text)
+                    return (
+                      <MenuItem key={p._id} value={p._id} sx={{ whiteSpace: 'normal' }}>
+                        {preview.length > 70 ? `${preview.slice(0, 70)}…` : preview}
+                      </MenuItem>
+                    )
+                  })}
+                </TextField>
+              )}
+            </div>
+          </div>
 
           <TextField
             label="Display order"
@@ -460,6 +558,22 @@ export default function ProjectFormModal({ open, editingItem, onClose, onSaved }
             value={form.order}
             onChange={set('order')}
             sx={fieldSx}
+          />
+
+          <FormControlLabel
+            control={
+              <Switch
+                checked={form.enabled}
+                onChange={(e) => setForm((f) => ({ ...f, enabled: e.target.checked }))}
+                sx={{ '& .MuiSwitch-switchBase.Mui-checked': { color: 'var(--accent)' } }}
+              />
+            }
+            label={
+              <span className="dash-switch-label">
+                Enabled — when off, this{' '}
+                <strong className="dash-switch-label__strong">entire project is hidden</strong> from the public site
+              </span>
+            }
           />
 
           <div>
@@ -480,21 +594,20 @@ export default function ProjectFormModal({ open, editingItem, onClose, onSaved }
                 />
               }
               label={
-                <span style={{ fontSize: 12.5, color: 'var(--text-secondary)' }}>
-                  Link enabled — when off, this{' '}
-                  <strong style={{ color: 'var(--accent-pink)' }}>entire project is hidden</strong> from the public site
+                <span className="dash-switch-label">
+                  Link enabled — shows the "Visit Project" button (only relevant if you filled in a link above)
                 </span>
               }
             />
           </div>
 
           <div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 8 }}>
+            <div className="dash-section-label">
               Download Buttons (in addition to the auto-generated case study PDF)
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div className="dash-row-group">
               {downloadRows.map((row, i) => (
-                <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                <div key={i} className="dash-row dash-row--top">
                   <TextField
                     label="Button label"
                     value={row.label}
@@ -508,22 +621,9 @@ export default function ProjectFormModal({ open, editingItem, onClose, onSaved }
                     onChange={(e) => updateDownloadRow(i, { url: e.target.value })}
                     sx={{ ...fieldSx, flex: '1 1 40%' }}
                   />
-                  <label
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      padding: '8px 10px',
-                      marginTop: 4,
-                      border: '1px dashed var(--border)',
-                      borderRadius: 8,
-                      color: 'var(--accent)',
-                      fontSize: 12,
-                      cursor: 'pointer',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
+                  <label className="dash-upload-label dash-upload-label--compact">
                     📁 Upload
-                    <input type="file" onChange={(e) => handleDownloadFileUpload(i, e)} style={{ display: 'none' }} />
+                    <input type="file" onChange={(e) => handleDownloadFileUpload(i, e)} className="dash-hidden-input" />
                   </label>
                   <IconButton size="small" onClick={() => removeDownloadRow(i)} sx={{ color: 'var(--accent-pink)', marginTop: 1 }}>
                     <DeleteIcon fontSize="small" />
@@ -531,21 +631,7 @@ export default function ProjectFormModal({ open, editingItem, onClose, onSaved }
                 </div>
               ))}
             </div>
-            <button
-              type="button"
-              onClick={addDownloadRow}
-              style={{
-                marginTop: 10,
-                background: 'none',
-                border: '1px dashed var(--border)',
-                borderRadius: 8,
-                padding: '8px 14px',
-                color: 'var(--accent)',
-                fontSize: 12.5,
-                cursor: 'pointer',
-                width: '100%',
-              }}
-            >
+            <button type="button" onClick={addDownloadRow} className="dash-add-row-btn">
               + Add download button
             </button>
           </div>
